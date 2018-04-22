@@ -132,25 +132,26 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts)
     return true;
 }
 
-    /** \brief Initializes a pSprite object.
-     *
-     * \param sprite - a pointer to your sprite.
-     * \param texture - a SDL_Texture* that holds your sprite's image
-     * \param x - x position onscreen
-     * \param y - y position onscreen
-     * \param w - width of your sprite
-     * \param h - height of your sprite
-     * \param scale - size * this == drawn size
-     * \param subclass - void*. Do with it what you will, isn't used internally
-     */
-void initPSprite(pSprite* sprite, SDL_Texture* texture, int x, int y, int w, int h, double scale, void* subclass)
+/** \brief Initializes a pSprite object. You may want to create a wrapper method.
+ *
+ * \param sprite - a pointer to your sprite.
+ * \param texture - a SDL_Texture* that holds your sprite's image
+ * \param x - x position onscreen
+ * \param y - y position onscreen
+ * \param w - width of your sprite
+ * \param h - height of your sprite
+ * \param scale - size * this == drawn size
+ * \param flip - SDL_RenderFlip value
+ * \param degrees - rotation angle in degrees
+ * \param subclass - void*. Do with it what you will, isn't used internally
+ */
+void initPSprite(pSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass)
 {
     sprite->texture = texture;
-    sprite->x = x;
-    sprite->y = y;
-    sprite->w = w;
-    sprite->h = h;
+    sprite->rect = rect;
     sprite->scale = scale;
+    sprite->degrees = degrees;
+    sprite->flip = flip;
     sprite->subclass = subclass;
 }
 
@@ -182,6 +183,17 @@ SDL_Keycode waitForKey()
     SDL_Keycode key;
     while(!(key = getKey()));
     return key;
+}
+
+/** \brief draws a pSprite to the screen
+ *
+ * \param sprite - pSprite you want drawn
+ */
+void drawPSprite(pSprite sprite, bool update)
+{
+    SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x, .y = sprite.rect.y, .w = sprite.rect.w * sprite.scale, .h = sprite.rect.h * sprite.scale}), sprite.degrees, NULL, sprite.flip);
+    if (update)
+        SDL_RenderPresent(mainRenderer);
 }
 
 /** \brief Creates a file, or clears contents if it exists.

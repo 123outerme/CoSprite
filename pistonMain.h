@@ -31,11 +31,10 @@
 typedef struct _pSprite {
     SDL_Texture* texture;
     int id;
-    int x;
-    int y;
-    int w;
-    int h;
+    SDL_Rect rect;
     double scale;
+    SDL_RendererFlip flip;
+    double degrees;
     void* subclass;  //fill with any extraneous data or pointer to another struct
 } pSprite;
 
@@ -43,9 +42,10 @@ typedef struct _pSprite {
 int initPiston();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
-void initPSprite(pSprite* sprite, SDL_Texture* texture, int x, int y, int w, int h, double scale, void* subclass);
+void initPSprite(pSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass);
 SDL_Keycode getKey();
 SDL_Keycode waitForKey();
+void drawPSprite(pSprite sprite, bool update);
 int createFile(char* filePath);
 int checkFile(char* filePath, int desiredLines);
 int appendLine(char* filePath, char* stuff);
