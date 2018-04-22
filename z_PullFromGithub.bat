@@ -1,5 +1,5 @@
 @set folder=C:\Program Files\Git\tmp\pulls
-@set project=Piston
+@set project=CrankShaft
 @cd %folder%\%project%
 @IF EXIST "%folder%\%project%\.git" (
 	cd /d "%folder%\%project%\.git"

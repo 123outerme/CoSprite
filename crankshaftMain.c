@@ -1,11 +1,11 @@
-#include "pistonMain.h"
+#include "crankshaftMain.h"
 
 #define IMG_INIT_FLAGS IMG_INIT_PNG
 
 /** \brief Initializes an SDL window and all of Piston's inner stuff.
  * \return Error code: Code 0: No error. Code 1: SDL systems failed to initialize. Code 2: Window could not be created Code 3: Renderer failed to initialize
  */
-int initPiston(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize)
+int initCrankshaft(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize)
 {
     int status = 0;
     mainWindow = NULL;
@@ -132,25 +132,26 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts)
     return true;
 }
 
-    /** \brief Initializes a pSprite object.
-     *
-     * \param sprite - a pointer to your sprite.
-     * \param texture - a SDL_Texture* that holds your sprite's image
-     * \param x - x position onscreen
-     * \param y - y position onscreen
-     * \param w - width of your sprite
-     * \param h - height of your sprite
-     * \param scale - size * this == drawn size
-     * \param subclass - void*. Do with it what you will, isn't used internally
-     */
-void initPSprite(pSprite* sprite, SDL_Texture* texture, int x, int y, int w, int h, double scale, void* subclass)
+/** \brief Initializes a pSprite object. You may want to create a wrapper method.
+ *
+ * \param sprite - a pointer to your sprite.
+ * \param texture - a SDL_Texture* that holds your sprite's image
+ * \param x - x position onscreen
+ * \param y - y position onscreen
+ * \param w - width of your sprite
+ * \param h - height of your sprite
+ * \param scale - size * this == drawn size
+ * \param flip - SDL_RenderFlip value
+ * \param degrees - rotation angle in degrees
+ * \param subclass - void*. Do with it what you will, isn't used internally
+ */
+void initPSprite(pSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass)
 {
     sprite->texture = texture;
-    sprite->x = x;
-    sprite->y = y;
-    sprite->w = w;
-    sprite->h = h;
+    sprite->rect = rect;
     sprite->scale = scale;
+    sprite->degrees = degrees;
+    sprite->flip = flip;
     sprite->subclass = subclass;
 }
 
@@ -184,101 +185,15 @@ SDL_Keycode waitForKey()
     return key;
 }
 
-/** \brief Creates a file, or clears contents if it exists.
+/** \brief draws a pSprite to the screen
  *
- * \param filePath - valid string filepath (relative or absolute)
- * \return Error code: Code 0: No error. Code -1: Error opening
+ * \param sprite - pSprite you want drawn
  */
-int createFile(char* filePath)
+void drawPSprite(pSprite sprite, bool update)
 {
-	FILE* filePtr;
-	filePtr = fopen(filePath,"w");
-	if (!filePtr)
-	{
-		printf("Error opening/creating file!\n");
-		return -1;
-	}
-	else
-    {
-        fclose(filePtr);
-		return 0;
-    }
-}
-
-/** \brief Checks if a file exists and if it has certain number of lines.
- *
- * \param filePath - valid string filepath (relative or absolute)
- * \param desiredLines - Compares this number to actual lines. If desiredLines < 0, gets number of lines instead.
- * \return 1 if desiredLines >= 0 and desiredLines >= lines. 0 otherwise. If desiredLines < 0, returns number of lines instead.
- */
-int checkFile(char* filePath, int desiredLines)
-{
-    FILE* filePtr = fopen(filePath, "r");
-	if (!filePtr)
-		return false;
-    char ch;
-    int lines = 0;
-    while(!feof(filePtr))
-    {
-      ch = fgetc(filePtr);
-      if(ch == '\n')
-      {
-        lines++;
-      }
-    }
-    fclose(filePtr);
-    return desiredLines >= 0 ? lines >= desiredLines : lines;
-}
-
-/** \brief Adds a line of text to the end of a file
- *
- * \param filePath - valid string filepath (relative or absolute)
- * \param stuff - string containing desired text.
- * \return Error code: Code 0: No error. Code -1: Error opening file
- */
-int appendLine(char* filePath, char* stuff)
-{
-	FILE* filePtr;
-	filePtr = fopen(filePath,"a");
-	if (!filePtr)
-	{
-		printf("Error opening file!\n");
-		return -1;
-	}
-	else
-	{
-		fprintf(filePtr, "%s\n", stuff);
-		fclose(filePtr);
-		return 0;
-	}
-}
-
-/** \brief Reads a line of a file.
- *
- * \param filePath - valid string filepath (relative or absolute)
- * \param lineNum - the line number (starting from 0)
- * \param maxLength - how long the string should be, max.
- * \param output - valid pointer to your char* (should not be read-only)
- * \return NULL if it fails, otherwise your string
- */
-char* readLine(char* filePath, int lineNum, int maxLength, char** output)
-{
-	FILE* filePtr = fopen(filePath,"r");
-	if (!filePtr)
-		return NULL;
-	else
-	{
-        char* thisLine = calloc(maxLength, sizeof(char));
-        fseek(filePtr, 0, SEEK_SET);
-        for(int p = 0; p <= lineNum; p++)
-            fgets(thisLine, maxLength, filePtr);
-        //printf("%s @ %d\n", thisLine, thisLine);
-        strncpy(*output, thisLine, maxLength);
-        //printf("%s @ %d\n", output, output);
-        fclose(filePtr);
-        free(thisLine);
-        return *output;
-	}
+    SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x, .y = sprite.rect.y, .w = sprite.rect.w * sprite.scale, .h = sprite.rect.h * sprite.scale}), sprite.degrees, NULL, sprite.flip);
+    if (update)
+        SDL_RenderPresent(mainRenderer);
 }
 
 /** \brief converts any int to a string.
@@ -344,4 +259,18 @@ void* freeThisMem(void* x)
 {
 	free(x);
 	return NULL;
+}
+
+char* removeNewline(char* stuff, char replacement, int maxLength)
+{
+    for(int i = maxLength - 1; i >= 0; i--)
+    {
+        if (i < 0)
+            return stuff;
+        if (stuff[i] == '\n')
+        {
+            stuff[i] = replacement;
+        }
+    }
+    return stuff;
 }
