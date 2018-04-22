@@ -46,14 +46,11 @@ void initPSprite(pSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double sc
 SDL_Keycode getKey();
 SDL_Keycode waitForKey();
 void drawPSprite(pSprite sprite, bool update);
-int createFile(char* filePath);
-int checkFile(char* filePath, int desiredLines);
-int appendLine(char* filePath, char* stuff);
-char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
 char* intToString(int value, char * result);
 int digits(int num);
 void* freeThisMem(void* x);
+char* removeNewline(char* stuff, char replacement, int maxLength);
 
 //global variable declarations:
 SDL_Window* mainWindow;

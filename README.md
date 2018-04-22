@@ -1,2 +1,3 @@
 # Piston
-A better 2D engine based on outermeSDL, my other attempt at an engine
+
+A new attempt at a 2D engine after outermeSDL really fell short in terms of usability.
