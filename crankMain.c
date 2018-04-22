@@ -75,7 +75,7 @@ int initCrank(char* iconPath, char* windowName, int windowWidth, int windowHeigh
                     canDrawText = false;
                     status = 4;
                 }
-
+                canDrawText = true;
                 srand((unsigned int) time(NULL));
                 /*if (checkFile(CONFIG_FILE_NAME, SIZE_OF_SCANCODE_ARRAY))
                 {
@@ -188,12 +188,74 @@ SDL_Keycode waitForKey()
 /** \brief draws a pSprite to the screen
  *
  * \param sprite - pSprite you want drawn
+ * \param update - if true, immediately presents renderer
  */
 void drawCSprite(cSprite sprite, bool update)
 {
     SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x, .y = sprite.rect.y, .w = sprite.rect.w * sprite.scale, .h = sprite.rect.h * sprite.scale}), sprite.degrees, NULL, sprite.flip);
     if (update)
         SDL_RenderPresent(mainRenderer);
+}
+
+/** \brief converts text to a texture
+ *
+ * \param text - text you want converted to a texture
+ * \param dest - pointer to your SDL_Texture*
+ * \param maxW - How wide the text can be before wrapping
+ * \param color - SDL_Color struct of color to be used
+ * \param isBlended - true always
+ * \return
+ *
+ */
+int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended)
+{
+    static int wh[] = {0, 0};
+    SDL_Surface* txtSurface = NULL;
+    if (isBlended)
+        txtSurface = TTF_RenderText_Blended_Wrapped(mainFont, text, color, maxW);
+//    else
+//        txtSurface = TTF_RenderText(smallFont, text, color, ((SDL_Color) {181, 182, 173}));
+    *dest = SDL_CreateTextureFromSurface(mainRenderer, txtSurface);
+    if (!*dest)
+    {
+        printf("Text texture could not be loaded! SDL Error: %s\n", SDL_GetError());
+    }
+    else
+    {
+        wh[0] = txtSurface->w;
+        wh[1] = txtSurface->h;
+    }
+    SDL_FreeSurface(txtSurface);
+    return wh;
+}
+
+/** \brief Draws text to the screen using mainFont, wrapped and bounded
+ *
+ * \param input - text to be drawn
+ * \param x - x value of first letter
+ * \param y - y value of first letter
+ * \param maxW - how wide the text can get before wrapping
+ * \param maxH - how tall the text can draw before being cut off
+ * \param color - SDL_Color struct of color to be used
+ * \param render - if true, immediately presents renderer
+ * \return
+ *
+ */
+void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render)
+{
+    if (canDrawText)
+    {
+        SDL_Texture* txtTexture = NULL;
+        int* wh;
+        wh = loadTextTexture(input, &txtTexture, maxW, color, true);
+        SDL_RenderCopy(mainRenderer, txtTexture, &((SDL_Rect){.w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}),
+                                                 &((SDL_Rect){.x =  x, .y = y, .w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}));
+
+
+        if (render)
+            SDL_RenderPresent(mainRenderer);
+        SDL_DestroyTexture(txtTexture);
+    }
 }
 
 /** \brief converts any int to a string.

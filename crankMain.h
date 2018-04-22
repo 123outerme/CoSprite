@@ -46,6 +46,8 @@ void initCSprite(cSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double sc
 SDL_Keycode getKey();
 SDL_Keycode waitForKey();
 void drawCSprite(cSprite sprite, bool update);
+int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
+void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 
 char* intToString(int value, char * result);
 int digits(int num);
