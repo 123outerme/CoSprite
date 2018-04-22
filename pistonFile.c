@@ -63,7 +63,7 @@ int appendLine(char* filePath, char* stuff)
 	}
 	else
 	{
-		fprintf(filePtr, "%s\n", stuff);
+		fprintf(filePtr, "%s", stuff);
 		fclose(filePtr);
 		return 0;
 	}
@@ -80,7 +80,7 @@ int appendLine(char* filePath, char* stuff)
 int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength)
 {
     int maxLines = checkFile(filePath, -1) + 1;
-    printf("%d\n", maxLines);
+    //printf("%d\n", maxLines);
     if (lineNum < 0 || lineNum > maxLines)
         return -1;
     char** allLines = calloc(maxLines, sizeof(char*));
@@ -91,19 +91,18 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength)
         allLines[i] = calloc(maxLength, sizeof(char));
         if (!readLine(filePath, i, maxLength, &(allLines[i])))
             return -1;
-        removeNewline(allLines[i], '\0', strlen(allLines[i]) + 1);
-        printf("%s\n", allLines[i]);
+        //printf("%s\n", allLines[i]);
     }
 
     strncpy(allLines[lineNum], stuff, maxLength);
-    printf("%s at %d\n", allLines[lineNum], lineNum);
+    //printf("%s at %d\n", allLines[lineNum], lineNum);
 
     createFile(filePath);
     for(int i = 0; i < maxLines; i++)
     {
         if (appendLine(filePath, allLines[i]) == -1)
             return -1;
-        printf("%s\n", allLines[i]);
+        //printf("%s\n", allLines[i]);
     }
 
     return 0;
