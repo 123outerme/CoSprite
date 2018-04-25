@@ -54,7 +54,7 @@ void destroyCText(cText* text);
 void drawCText(cText text, bool update);
 void initCResource(cResource* res, char* filepath);
 void destroyCResource(cResource* res);
-void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite* sprites[], int spriteCount, cResource* resources[], int resCount, cText* strings[], int stringCount);
+void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, cResource resources[], int resCount, cText strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);

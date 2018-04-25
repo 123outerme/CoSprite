@@ -121,21 +121,30 @@ void destroyCResource(cResource* res)
 /** \brief Initializes a cScene object.
  *
  * \param scenePtr - pointer to your cScene
- * \param sprites[] - array of pointers to cSprites to be drawn
+ * \param sprites[] - array of cSprites to be drawn
  * \param spriteCount - how many elements in sprites[]
- * \param resources[] - array of pointers to cResources
+ * \param resources[] - array of cResources
  * \param resCount - how many elements in resources[]
- * \param strings[] - array of pointers to cTexts
+ * \param strings[] - array of cTexts
  * \param stringCount - how many elements in strings[]
  */
-void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite* sprites[], int spriteCount, cResource* resources[], int resCount, cText* strings[], int stringCount)
+void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, cResource resources[], int resCount, cText strings[], int stringCount)
 {
     scenePtr->bgColor = bgColor;
-    scenePtr->sprites = (cSprite**) sprites;
+
+    if (spriteCount > 0)
+        scenePtr->sprites = &sprites;
+
     scenePtr->spriteCount = spriteCount;
-    scenePtr->resources = (cResource**) resources;
+
+    if (resCount > 0)
+        scenePtr->resources = &resources;
+
     scenePtr->resCount = resCount;
-    scenePtr->strings = (cText**) strings;
+
+    if (stringCount > 0)
+        scenePtr->strings = &strings;
+
     scenePtr->stringCount = stringCount;
 }
 
@@ -145,20 +154,25 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite* sprites[], int spr
  */
 void destroyCScene(cScene* scenePtr)
 {
-    for(int i = 0; i < scenePtr->spriteCount; i++)
-        destroyCSprite(scenePtr->sprites[i]);
+    if (scenePtr->spriteCount > 0)
+    {
+        for(int i = 0; i < scenePtr->spriteCount; i++)
+            destroyCSprite(scenePtr->sprites[i]);
+        scenePtr->spriteCount = 0;
+    }
+    if (scenePtr->resCount > 0)
+    {
+        for(int i = 0; i < scenePtr->resCount; i++)
+            destroyCResource(scenePtr->resources[i]);
+        scenePtr->resCount = 0;
+    }
 
-    scenePtr->spriteCount = 0;
-
-    for(int i = 0; i < scenePtr->resCount; i++)
-        destroyCResource(scenePtr->resources[i]);
-
-    scenePtr->resCount = 0;
-
-    for(int i = 0; i < scenePtr->stringCount; i++)
-        destroyCText(scenePtr->strings[i]);
-
-    scenePtr->stringCount = 0;
+    if (scenePtr->stringCount > 0)
+    {
+        for(int i = 0; i < scenePtr->stringCount; i++)
+            destroyCText(scenePtr->strings[i]);
+        scenePtr->stringCount = 0;
+    }
 }
 
 /** \brief draws the CScene.
