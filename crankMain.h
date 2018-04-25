@@ -25,38 +25,18 @@
 #define bool char
 #define false 0
 #define true 1
-#define printBool(bool) (bool ? "true" : "false")
+#define boolToString(bool) (bool ? "true" : "false")
 
 //struct definitions:
-typedef struct _cSprite {
-    SDL_Texture* texture;
-    int id;
-    SDL_Rect rect;
-    double scale;
-    SDL_RendererFlip flip;
-    double degrees;
-    void* subclass;  //fill with any extraneous data or pointer to another struct
-} cSprite;
 
-typedef struct _cResource {
-    char* filepath;
-    SDL_Texture* texture;
-    int w;
-    int h;
-} cResource;
 
-//method prototypes:
+//function prototypes:
 int initCrank();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
-void initCSprite(cSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass);
-void initCResource(cResource* res, char* filepath);
-void destroyCResource(cResource* res);
 SDL_Keycode getKey();
 SDL_Keycode waitForKey();
-void drawCSprite(cSprite sprite, bool update);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
-void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 
 char* intToString(int value, char * result);
 int digits(int num);

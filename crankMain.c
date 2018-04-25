@@ -132,67 +132,6 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts)
     return true;
 }
 
-/** \brief Initializes a pSprite object. You may want to create a wrapper method.
- *
- * \param sprite - a pointer to your sprite.
- * \param texture - a SDL_Texture* that holds your sprite's image
- * \param x - x position onscreen
- * \param y - y position onscreen
- * \param w - width of your sprite
- * \param h - height of your sprite
- * \param scale - size * this == drawn size
- * \param flip - SDL_RenderFlip value
- * \param degrees - rotation angle in degrees
- * \param subclass - void*. Do with it what you will, isn't used internally
- */
-void initCSprite(cSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass)
-{
-    sprite->texture = texture;
-    sprite->rect = rect;
-    sprite->scale = scale;
-    sprite->degrees = degrees;
-    sprite->flip = flip;
-    sprite->subclass = subclass;
-}
-
-/** \brief clears out a cSprite and its memory
- *
- * \param sprite - cSprite pointer
- */
-void destroyCSprite(cSprite* sprite)
-{
-    SDL_DestroyTexture(sprite->texture);
-    sprite->rect = {0, 0, 0, 0};
-    sprite->scale = 0;
-    sprite->degrees = 0;
-    sprite->flip = SDL_FLIP_NONE;
-    sprite->subclass = NULL;
-}
-
-/** \brief Loads in a image resource
- *
- * \param res - cResource pointer
- * \param filepath - valid string filepath (relative or absolute)
- */
-void initCResource(cResource* res, char* filepath)
-{
-    res->filepath = filepath;
-    loadIMG(filepath, &(res->texture));
-    SDL_QueryTexture(res->texture, NULL, NULL, &(res->w), &(res->h));
-}
-
-/** \brief clears out a cResource and its memory
- *
- * \param res - cResource pointer
- */
-void destroyCResource(cResource* res)
-{
-    strcpy(res->filepath, "\0");
-    SDL_DestroyTexture(res->texture);
-    res->w = 0;
-    res->h = 0;
-}
-
 /** \brief gets a keypress
  *
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
@@ -221,18 +160,6 @@ SDL_Keycode waitForKey()
     SDL_Keycode key;
     while(!(key = getKey()));
     return key;
-}
-
-/** \brief draws a pSprite to the screen
- *
- * \param sprite - pSprite you want drawn
- * \param update - if true, immediately presents renderer
- */
-void drawCSprite(cSprite sprite, bool update)
-{
-    SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x, .y = sprite.rect.y, .w = sprite.rect.w * sprite.scale, .h = sprite.rect.h * sprite.scale}), sprite.degrees, NULL, sprite.flip);
-    if (update)
-        SDL_RenderPresent(mainRenderer);
 }
 
 /** \brief converts text to a texture
@@ -265,35 +192,6 @@ int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, 
     }
     SDL_FreeSurface(txtSurface);
     return wh;
-}
-
-/** \brief Draws text to the screen using mainFont, wrapped and bounded
- *
- * \param input - text to be drawn
- * \param x - x value of first letter
- * \param y - y value of first letter
- * \param maxW - how wide the text can get before wrapping
- * \param maxH - how tall the text can draw before being cut off
- * \param color - SDL_Color struct of color to be used
- * \param render - if true, immediately presents renderer
- * \return
- *
- */
-void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render)
-{
-    if (canDrawText)
-    {
-        SDL_Texture* txtTexture = NULL;
-        int* wh;
-        wh = loadTextTexture(input, &txtTexture, maxW, color, true);
-        SDL_RenderCopy(mainRenderer, txtTexture, &((SDL_Rect){.w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}),
-                                                 &((SDL_Rect){.x =  x, .y = y, .w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}));
-
-
-        if (render)
-            SDL_RenderPresent(mainRenderer);
-        SDL_DestroyTexture(txtTexture);
-    }
 }
 
 /** \brief converts any int to a string.
