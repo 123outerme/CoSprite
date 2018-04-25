@@ -155,6 +155,44 @@ void initCSprite(cSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double sc
     sprite->subclass = subclass;
 }
 
+/** \brief clears out a cSprite and its memory
+ *
+ * \param sprite - cSprite pointer
+ */
+void destroyCSprite(cSprite* sprite)
+{
+    SDL_DestroyTexture(sprite->texture);
+    sprite->rect = {0, 0, 0, 0};
+    sprite->scale = 0;
+    sprite->degrees = 0;
+    sprite->flip = SDL_FLIP_NONE;
+    sprite->subclass = NULL;
+}
+
+/** \brief Loads in a image resource
+ *
+ * \param res - cResource pointer
+ * \param filepath - valid string filepath (relative or absolute)
+ */
+void initCResource(cResource* res, char* filepath)
+{
+    res->filepath = filepath;
+    loadIMG(filepath, &(res->texture));
+    SDL_QueryTexture(res->texture, NULL, NULL, &(res->w), &(res->h));
+}
+
+/** \brief clears out a cResource and its memory
+ *
+ * \param res - cResource pointer
+ */
+void destroyCResource(cResource* res)
+{
+    strcpy(res->filepath, "\0");
+    SDL_DestroyTexture(res->texture);
+    res->w = 0;
+    res->h = 0;
+}
+
 /** \brief gets a keypress
  *
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
@@ -275,7 +313,7 @@ char* intToString(int value, char* result)
         value *= -1;
         //printf("new value = %d\n", value);
     }
-	int digit = digits(value);
+	const int digit = digits(value);
 	//printf("digit = %d\n", digit);
 	result = calloc(digit + 1 + negFlag, sizeof(char));
 	result[digit + negFlag] = '\0';

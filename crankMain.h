@@ -38,11 +38,20 @@ typedef struct _cSprite {
     void* subclass;  //fill with any extraneous data or pointer to another struct
 } cSprite;
 
+typedef struct _cResource {
+    char* filepath;
+    SDL_Texture* texture;
+    int w;
+    int h;
+} cResource;
+
 //method prototypes:
 int initCrank();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 void initCSprite(cSprite* sprite, SDL_Texture* texture, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass);
+void initCResource(cResource* res, char* filepath);
+void destroyCResource(cResource* res);
 SDL_Keycode getKey();
 SDL_Keycode waitForKey();
 void drawCSprite(cSprite sprite, bool update);
