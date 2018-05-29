@@ -20,6 +20,17 @@ typedef struct _cSprite {
     void* subclass;  /**< fill with any extraneous data or pointer to another struct */
 } cSprite;
 
+typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A collection of sprites with relative coordinates
+    cSprite* sprites;
+    int numSprites;
+    SDL_Rect rect;
+    double scale;
+    SDL_RendererFlip flip;
+    double degrees;
+    int drawPriority;
+    void* subclass;
+} c2DModel;
+
 typedef struct _cText {
     char* string;
     SDL_Rect rect;
@@ -39,6 +50,8 @@ typedef struct _cScene {
     SDL_Color bgColor;
     cSprite** sprites;
     int spriteCount;
+    c2DModel** models;
+    int modelCount;
     cResource** resources;
     int resCount;
     cText** strings;
@@ -49,12 +62,15 @@ typedef struct _cScene {
 void initCSprite(cSprite* sprite, SDL_Texture* texture, int id, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
 void drawCSprite(cSprite sprite, bool update);
+void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, int x, int y, int w, int h, double scale, SDL_RendererFlip flip, double degrees, void* subclass, int drawPriority);
+void destroyC2DModel(c2DModel* model);
+void drawC2DModel(c2DModel model, bool update);
 void initCText(cText* text, char* string, SDL_Rect rect, SDL_Color textColor, SDL_Color bgColor, int drawPriority);
 void destroyCText(cText* text);
 void drawCText(cText text, bool update);
 void initCResource(cResource* res, char* filepath);
 void destroyCResource(cResource* res);
-void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, cResource resources[], int resCount, cText strings[], int stringCount);
+void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
