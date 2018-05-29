@@ -72,7 +72,7 @@ void drawCSprite(cSprite sprite, bool update)
  */
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, int x, int y, int w, int h, double scale, SDL_RendererFlip flip, double degrees, void* subclass, int drawPriority)
 {
-    model->sprites = sprites;
+    model->sprites = (numSprites) ? sprites : NULL;
     model->numSprites = numSprites;
     model->rect = (SDL_Rect) {.x = x, .y = y, .w = w, .h = h};
     model->scale = scale;
@@ -106,7 +106,7 @@ void drawC2DModel(c2DModel model, bool update)
         for(int priority = 5; priority >= 1; priority--)
         {
             if (model.sprites[i].drawPriority == priority)
-                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x, .y = model.rect.y + model.sprites[i].rect.y, .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip | model.flip));
+                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x, .y = model.rect.y + model.sprites[i].rect.y, .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip | model.flip) % 4);
         }
     }
     if (update)
@@ -192,24 +192,13 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spri
 {
     scenePtr->bgColor = bgColor;
 
-    if (spriteCount > 0)
-        scenePtr->sprites = &sprites;
-
+    scenePtr->sprites = (spriteCount > 0) ? &sprites : NULL;
     scenePtr->spriteCount = spriteCount;
-
-    if (modelCount > 0)
-        scenePtr->models = &models;
-
+    scenePtr->models = (modelCount > 0) ? &models : NULL;
     scenePtr->modelCount = modelCount;
-
-    if (resCount > 0)
-        scenePtr->resources = &resources;
-
+    scenePtr->resources = (resCount > 0) ? &resources : NULL;
     scenePtr->resCount = resCount;
-
-    if (stringCount > 0)
-        scenePtr->strings = &strings;
-
+    scenePtr->strings = (stringCount > 0) ? &strings : NULL;
     scenePtr->stringCount = stringCount;
 }
 

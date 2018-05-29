@@ -38,11 +38,6 @@ SDL_Keycode getKey();
 SDL_Keycode waitForKey();
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
-char* intToString(int value, char * result);
-int digits(int num);
-void* freeThisMem(void* x);
-char* removeNewline(char* stuff, char replacement, int maxLength);
-
 //global variable declarations:
 SDL_Window* mainWindow;
 SDL_Surface* mainScreen;

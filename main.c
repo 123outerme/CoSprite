@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     c2DModel model;
     initC2DModel(&model, sprites, 2, 0, 0, 150, 150, 1.0, SDL_FLIP_NONE, 0.0, NULL, 5);
     cScene scene;
-    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, sprites, 1, &model, 1, (cResource*) NULL, 0, txts, 1);
+    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, sprites, 0, &model, 1, (cResource*) NULL, 0, txts, 1);
     int key;
     while(key != -1)
     {
