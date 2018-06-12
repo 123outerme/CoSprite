@@ -39,6 +39,10 @@ typedef struct _cText {
     SDL_Color bgColor;
 } cText;
 
+typedef struct _cCamera {
+    SDL_Rect rect;
+} cCamera;
+
 typedef struct _cResource {
     char* filepath;
     SDL_Texture* texture;
@@ -70,6 +74,8 @@ void destroyCText(cText* text);
 void drawCText(cText text, bool update);
 void initCResource(cResource* res, char* filepath);
 void destroyCResource(cResource* res);
+void initCCamera(cCamera* camera, SDL_Rect rect);
+void destroyCCamera(cCamera* camera);
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool redraw);
