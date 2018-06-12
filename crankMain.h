@@ -1,7 +1,7 @@
 #ifndef CRANKMAIN_H_INCLUDED
 #define CRANKMAIN_H_INCLUDED
 
-/* ++ Crank Engine version 1.0 - last update 4/21/2018 ++
+/* ++ Crank Engine version 0.1.0 - last update 6/7/2018 ++
   -- initCrank() error codes:  --
   error code 0: No error
   error code 1: SDL systems failed to initialize

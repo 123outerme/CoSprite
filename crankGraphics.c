@@ -106,7 +106,9 @@ void drawC2DModel(c2DModel model, bool update)
         for(int priority = 5; priority >= 1; priority--)
         {
             if (model.sprites[i].drawPriority == priority)
-                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x, .y = model.rect.y + model.sprites[i].rect.y, .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip | model.flip) % 4);
+            {
+                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x, .y = model.rect.y + model.sprites[i].rect.y, .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip + model.flip) % 4);
+            }
         }
     }
     if (update)
@@ -214,6 +216,14 @@ void destroyCScene(cScene* scenePtr)
             destroyCSprite(scenePtr->sprites[i]);
         scenePtr->spriteCount = 0;
     }
+
+    if (scenePtr->modelCount > 0)
+    {
+        for(int i = 0; i < scenePtr->modelCount; i++)
+            destroyC2DModel(scenePtr->models[i]);
+        scenePtr->modelCount = 0;
+    }
+
     if (scenePtr->resCount > 0)
     {
         for(int i = 0; i < scenePtr->resCount; i++)
