@@ -52,6 +52,7 @@ typedef struct _cResource {
 
 typedef struct _cScene {
     SDL_Color bgColor;
+    cCamera* camera;
     cSprite** sprites;
     int spriteCount;
     c2DModel** models;
@@ -76,7 +77,7 @@ void initCResource(cResource* res, char* filepath);
 void destroyCResource(cResource* res);
 void initCCamera(cCamera* camera, SDL_Rect rect);
 void destroyCCamera(cCamera* camera);
-void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount);
+void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
