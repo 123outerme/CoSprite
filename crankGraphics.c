@@ -178,6 +178,25 @@ void destroyCResource(cResource* res)
     res->h = 0;
 }
 
+/** \brief initializes a cCamera and its memory
+ *
+ * \param camera - a cCamera pointer
+ * \param rect - the bounding rect of the camera
+ */
+void initCCamera(cCamera* camera, SDL_Rect rect)
+{
+    camera->rect = rect;
+}
+
+/** \brief clears out a cCamera and its memory
+ *
+ * \param camera - a cCamera pointer
+ */
+void destroyCCamera(cCamera* camera)
+{
+    camera->rect = NULL;
+}
+
 /** \brief Initializes a cScene object.
  *
  * \param scenePtr - pointer to your cScene
@@ -190,10 +209,10 @@ void destroyCResource(cResource* res)
  * \param strings[] - array of cTexts
  * \param stringCount - how many elements in strings[]
  */
-void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount)
+void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount)
 {
+    scenePtr->camera = camera;
     scenePtr->bgColor = bgColor;
-
     scenePtr->sprites = (spriteCount > 0) ? &sprites : NULL;
     scenePtr->spriteCount = spriteCount;
     scenePtr->models = (modelCount > 0) ? &models : NULL;
@@ -210,6 +229,8 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cSprite sprites[], int spri
  */
 void destroyCScene(cScene* scenePtr)
 {
+    destroyCCamera(scenePtr->camera);
+    
     if (scenePtr->spriteCount > 0)
     {
         for(int i = 0; i < scenePtr->spriteCount; i++)
