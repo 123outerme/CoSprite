@@ -41,6 +41,7 @@ typedef struct _cText {
 
 typedef struct _cCamera {
     SDL_Rect rect;
+    double zoom;
 } cCamera;
 
 typedef struct _cResource {
@@ -66,16 +67,16 @@ typedef struct _cScene {
 //function prototypes:
 void initCSprite(cSprite* sprite, SDL_Texture* texture, int id, SDL_Rect rect, double scale, SDL_RendererFlip flip, double degrees, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
-void drawCSprite(cSprite sprite, bool update);
+void drawCSprite(cSprite sprite, cCamera camera, bool update);
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, int x, int y, int w, int h, double scale, SDL_RendererFlip flip, double degrees, void* subclass, int drawPriority);
 void destroyC2DModel(c2DModel* model);
-void drawC2DModel(c2DModel model, bool update);
+void drawC2DModel(c2DModel model, cCamera camera, bool update);
 void initCText(cText* text, char* string, SDL_Rect rect, SDL_Color textColor, SDL_Color bgColor, int drawPriority);
 void destroyCText(cText* text);
-void drawCText(cText text, bool update);
+void drawCText(cText text, cCamera camera, bool update);
 void initCResource(cResource* res, char* filepath);
 void destroyCResource(cResource* res);
-void initCCamera(cCamera* camera, SDL_Rect rect);
+void initCCamera(cCamera* camera, SDL_Rect rect, double zoom);
 void destroyCCamera(cCamera* camera);
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite sprites[], int spriteCount, c2DModel models[], int modelCount, cResource resources[], int resCount, cText strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);

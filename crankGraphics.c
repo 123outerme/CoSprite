@@ -44,14 +44,15 @@ void destroyCSprite(cSprite* sprite)
 
 }
 
-/** \brief draws a pSprite to the screen
+/** \brief draws a cSprite to the screen
  *
- * \param sprite - pSprite you want drawn
+ * \param sprite - cSprite you want drawn
+ * \param camera - cCamera to be used for drawing
  * \param update - if true, immediately presents renderer
  */
-void drawCSprite(cSprite sprite, bool update)
+void drawCSprite(cSprite sprite, cCamera camera, bool update)
 {
-    SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x, .y = sprite.rect.y, .w = sprite.rect.w * sprite.scale, .h = sprite.rect.h * sprite.scale}), sprite.degrees, NULL, sprite.flip);
+    SDL_RenderCopyEx(mainRenderer, sprite.texture, &((SDL_Rect) {.x = 0, .y = 0, .w = sprite.rect.w, .h = sprite.rect.h}), &((SDL_Rect) {.x = sprite.rect.x - (camera.rect.x * windowW / camera.rect.w), .y = sprite.rect.y - (camera.rect.y * windowH / camera.rect.h), .w = sprite.rect.w * sprite.scale * camera.zoom, .h = sprite.rect.h * sprite.scale * camera.zoom}), sprite.degrees, NULL, sprite.flip);
     if (update)
         SDL_RenderPresent(mainRenderer);
 }
@@ -99,7 +100,13 @@ void destroyC2DModel(c2DModel* model)
     model->drawPriority = 0;
 }
 
-void drawC2DModel(c2DModel model, bool update)
+/** \brief draws a c2DModel to the screen
+ *
+ * \param model - c2DModel you want drawn
+ * \param camera - cCamera to be used for drawing
+ * \param update - if true, immediately presents renderer
+ */
+void drawC2DModel(c2DModel model, cCamera camera, bool update)
 {
     for(int i = 0; i < model.numSprites; i++)
     {
@@ -107,7 +114,7 @@ void drawC2DModel(c2DModel model, bool update)
         {
             if (model.sprites[i].drawPriority == priority)
             {
-                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x, .y = model.rect.y + model.sprites[i].rect.y, .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip + model.flip) % 4);
+                SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &((SDL_Rect) {.x = 0, .y = 0, .w = model.sprites[i].rect.w, .h = model.sprites[i].rect.h}), &((SDL_Rect) {.x = model.rect.x + model.sprites[i].rect.x - (camera.rect.x * windowW / camera.rect.w), .y = model.rect.y + model.sprites[i].rect.y  - (camera.rect.y * windowH / camera.rect.h), .w = model.sprites[i].rect.w * (model.sprites[i].scale * model.scale * camera.zoom), .h = model.sprites[i].rect.h * (model.sprites[i].scale * model.scale * camera.zoom)}), model.sprites[i].degrees + model.degrees, NULL, (model.sprites[i].flip + model.flip) % 4);
             }
         }
     }
@@ -134,6 +141,10 @@ void initCText(cText* text, char* string, SDL_Rect rect, SDL_Color textColor, SD
     text->drawPriority = drawPriority;
 }
 
+/** \brief clears out a cText and its memory
+ *
+ * \param text - cText pointer
+ */
 void destroyCText(cText* text)
 {
     free(text->string);
@@ -144,13 +155,19 @@ void destroyCText(cText* text)
     text->drawPriority = 0;
 }
 
-void drawCText(cText text, bool update)
+/** \brief draws a cText to the screen
+ *
+ * \param text - cText you want drawn
+ * \param camera - cCamera to be used for drawing
+ * \param update - if true, immediately presents renderer
+ */
+void drawCText(cText text, cCamera camera, bool update)
 {
     Uint8 r, g, b, a;
     SDL_GetRenderDrawColor(mainRenderer, &r, &g, &b, &a);
     SDL_SetRenderDrawColor(mainRenderer, text.bgColor.r, text.bgColor.g, text.bgColor.b, text.bgColor.a);
     SDL_RenderFillRect(mainRenderer, &(text.rect));
-    drawText(text.string, text.rect.x, text.rect.y, text.rect.w, text.rect.h, text.textColor, update);
+    drawText(text.string, text.rect.x - (camera.rect.x * windowW / camera.rect.w), text.rect.y - (camera.rect.y * windowH / camera.rect.h), text.rect.w, text.rect.h, text.textColor, update);
     SDL_SetRenderDrawColor(mainRenderer, r, g, b, a);
 }
 
@@ -183,9 +200,10 @@ void destroyCResource(cResource* res)
  * \param camera - a cCamera pointer
  * \param rect - the bounding rect of the camera
  */
-void initCCamera(cCamera* camera, SDL_Rect rect)
+void initCCamera(cCamera* camera, SDL_Rect rect, double zoom)
 {
     camera->rect = rect;
+    camera->zoom = zoom;
 }
 
 /** \brief clears out a cCamera and its memory
@@ -194,7 +212,8 @@ void initCCamera(cCamera* camera, SDL_Rect rect)
  */
 void destroyCCamera(cCamera* camera)
 {
-    camera->rect = NULL;
+    camera->rect = (SDL_Rect) {0, 0, 0, 0};
+    camera->zoom = 1.0;
 }
 
 /** \brief Initializes a cScene object.
@@ -230,7 +249,7 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite sp
 void destroyCScene(cScene* scenePtr)
 {
     destroyCCamera(scenePtr->camera);
-    
+
     if (scenePtr->spriteCount > 0)
     {
         for(int i = 0; i < scenePtr->spriteCount; i++)
@@ -274,19 +293,19 @@ void drawCScene(cScene* scenePtr, bool redraw)
         for(int i = 0; i < scenePtr->spriteCount; i++)
         {
             if (scenePtr->sprites[i]->drawPriority == priority)
-                drawCSprite(*(scenePtr->sprites[i]), false);
+                drawCSprite(*(scenePtr->sprites[i]), *(scenePtr->camera), false);
         }
 
         for(int i = 0; i < scenePtr->modelCount; i++)
         {
             if (scenePtr->models[i]->drawPriority == priority)
-                drawC2DModel(*(scenePtr->models[i]), false);
+                drawC2DModel(*(scenePtr->models[i]), *(scenePtr->camera), false);
         }
 
         for(int i = 0; i < scenePtr->stringCount; i++)
         {
             if (scenePtr->strings[i]->drawPriority == priority)
-                drawCText(*(scenePtr->strings[i]), false);
+                drawCText(*(scenePtr->strings[i]), *(scenePtr->camera), false);
         }
     }
 

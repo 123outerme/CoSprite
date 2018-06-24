@@ -14,8 +14,10 @@ int main(int argc, char* argv[])
     initCText(&txts[0], "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, 1);
     c2DModel model;
     initC2DModel(&model, sprites, 2, 0, 0, 150, 150, 1.0, SDL_FLIP_NONE, 0.0, NULL, 5);
+    cCamera camera;
+    initCCamera(&camera, (SDL_Rect) {0, 0, 20, 15}, 1.0);
     cScene scene;
-    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, sprites, 0, &model, 1, (cResource*) NULL, 0, txts, 1);
+    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, sprites, 0, &model, 1, (cResource*) NULL, 0, txts, 1);
     int key;
     while(key != -1)
     {
@@ -28,6 +30,14 @@ int main(int argc, char* argv[])
             model.rect.x -= 8;
         if (key == SDLK_d)
             model.rect.x += 8;
+        if (key == SDLK_UP)
+            camera.rect.y--;
+        if (key == SDLK_DOWN)
+            camera.rect.y++;
+        if (key == SDLK_LEFT)
+            camera.rect.x--;
+        if (key == SDLK_RIGHT)
+            camera.rect.x++;
         drawCScene(&scene, true);
     }
     destroyCScene(&scene);
