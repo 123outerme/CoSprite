@@ -13,7 +13,7 @@
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 3
     #define COSPRITE_VERSION_PATCH 2
-    #define COSPRITE_VERSION "0.3.1"
+    #define COSPRITE_VERSION "0.3.2"
 #endif //CoSprite_VERSION
 
 //#includes:
