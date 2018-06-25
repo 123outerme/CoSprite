@@ -1,13 +1,13 @@
-#include "crankMain.h"
-#include "crankFile.h"
-#include "crankGraphics.h"
-#include "crankUtility.h"
+#include "csMain.h"
+#include "csFile.h"
+#include "csGraphics.h"
+#include "csUtility.h"
 
 void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 
 int main(int argc, char* argv[])
 {
-    int code = initCrank("cb.bmp", "Crank Test", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
+    int code = initCrank("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
     loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
