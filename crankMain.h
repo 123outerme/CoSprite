@@ -22,20 +22,26 @@
 #include "SDL/SDL_mixer.h" //This is included for audio
 
 //#defines:
-#define bool char
-#define false 0
-#define true 1
-#define boolToString(bool) (bool ? "true" : "false")
+#ifndef bool
+    #define bool char
+    #define false 0
+    #define true 1
+#endif // bool
+#ifndef NULL
+    #define NULL ((void*) 0)
+#endif //NULL
 
+#define boolToString(bool) (bool ? "true" : "false")
 //struct definitions:
 
 
 //function prototypes:
 int initCrank();
+void closeCrank();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
-SDL_Keycode getKey();
-SDL_Keycode waitForKey();
+SDL_Keycode getKey(bool useMouse);
+SDL_Keycode waitForKey(bool useMouse);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
 //global variable declarations:

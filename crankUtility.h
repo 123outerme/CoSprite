@@ -14,9 +14,10 @@
     #define true 1
 #endif // bool
 #ifndef NULL
-    #define NULL 0
+    #define NULL ((void*) 0)
 #endif //NULL
 
+int randInt(int low, int high, bool inclusive);
 char* intToString(int value, char * result);
 int digits(int num);
 void* freeThisMem(void* x);

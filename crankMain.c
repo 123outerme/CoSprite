@@ -89,6 +89,34 @@ int initCrank(char* iconPath, char* windowName, int windowWidth, int windowHeigh
     return status;
 }
 
+void closeCrank()
+{
+    TTF_CloseFont(mainFont);
+    //TTF_CloseFont(smallFont);
+	if (mainScreen)
+        SDL_FreeSurface(mainScreen);
+    if (mainWindow)
+        SDL_DestroyWindow(mainWindow);
+    if (mainRenderer)
+        SDL_DestroyRenderer(mainRenderer);
+    /*for(int i = 0; i < MAX_SOUNDS; i++)
+    {
+        if (audioArray[i])
+            Mix_FreeChunk(audioArray[i]);
+    }*/
+
+    /*for(int i = 0; i < MAX_MUSIC; i++)
+    {
+        if (musicArray[i])
+            Mix_FreeMusic(musicArray[i]);
+    }*/
+
+    TTF_Quit();
+    IMG_Quit();
+    Mix_CloseAudio();
+    SDL_Quit();
+}
+
 /** \brief Loads an image into a SDL_Texture*
  *
  * \param imgPath - valid string filepath (relative or absolute)
@@ -134,9 +162,10 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts)
 
 /** \brief gets a keypress
  *
+ * \param useMouse - whether or not to count a click as a key
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
  */
-SDL_Keycode getKey()
+SDL_Keycode getKey(bool useMouse)
 {
     SDL_Event e;
     SDL_Keycode keycode = 0;
@@ -145,21 +174,48 @@ SDL_Keycode getKey()
         if(e.type == SDL_QUIT)
             keycode = -1;
         else
+        {
             if(e.type == SDL_KEYDOWN)
                 keycode = e.key.keysym.sym;
+            if (e.type == SDL_MOUSEBUTTONDOWN && useMouse)
+                keycode = 1;
+        }
     }
     return keycode;
 }
 
 /** \brief Just like getKey(), except it waits
  *
+ * \param useMouse - whether or not to count a click as a key
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
  */
-SDL_Keycode waitForKey()
+SDL_Keycode waitForKey(bool useMouse)
 {
-    SDL_Keycode key;
-    while(!(key = getKey()));
-    return key;
+    SDL_Event e;
+    bool quit = false;
+    SDL_Keycode keycode = SDLK_ESCAPE;
+    while(!quit)
+    {
+        while(SDL_PollEvent(&e) != 0)
+        {
+            if(e.type == SDL_QUIT)
+                quit = true;
+            else
+            {
+                if(e.type == SDL_KEYDOWN)
+                {
+                    keycode = e.key.keysym.sym;
+                    quit = true;
+                }
+                if (e.type == SDL_MOUSEBUTTONDOWN && useMouse)
+                {
+                    keycode = 1;
+                    quit = true;
+                }
+            }
+        }
+    }
+    return keycode;
 }
 
 /** \brief converts text to a texture

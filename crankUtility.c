@@ -1,5 +1,10 @@
 #include "crankUtility.h"
 
+int randInt(int low, int high, bool inclusive)
+{
+    return low + (rand() % (high + inclusive));
+}
+
 /** \brief converts any int to a string.
  *
  * \param value - what value you want

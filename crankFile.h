@@ -1,8 +1,19 @@
 #ifndef CRANKFILE_H_INCLUDED
 #define CRANKFILE_H_INCLUDED
 
-#include "crankMain.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
+//defines:
+#ifndef bool
+    #define bool char
+    #define false 0
+    #define true 1
+#endif // bool
+
+//function prototypes:
 int createFile(char* filePath);
 int checkFile(char* filePath, int desiredLines);
 int appendLine(char* filePath, char* stuff, bool addNewline);
