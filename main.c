@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
     cText txt;
     loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
-    initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, false, 1);
+    initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, 0, 0, 150, 150, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     cCamera camera;

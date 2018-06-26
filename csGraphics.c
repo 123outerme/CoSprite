@@ -90,7 +90,7 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update)
  * \param scale - size * this == drawn size
  * \param flip - SDL_RenderFlip value
  * \param degrees - rotation angle in degrees
-* \param fixed - if true, won't be affected by a scene's camera
+ * \param fixed - if true, won't be affected by a scene's camera
  * \param subclass - void*. Do with it what you will, isn't used internally
  * \param drawPriority - 0 - not drawn. 1-5 - drawn. Lower number = drawn later
  */
@@ -145,14 +145,14 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                 {
                     float s = sin(degToRad(camera.degrees));
                     float c = cos(degToRad(camera.degrees));
-                    x -= /*(camera.rect.x * windowW / camera.rect.w)*/ + (windowW / 2);
-                    y -= /*(camera.rect.y * windowH / camera.rect.h)*/ + (windowH / 2);
+                    x -= windowW / 2;
+                    y -= windowH / 2;
 
                     int xnew = x * c - y * s;
                     int ynew = x * s + y * c;
 
-                    x = xnew + /*(camera.rect.x * windowW / camera.rect.w) +*/ (windowW / 2);
-                    y = ynew + /*(camera.rect.y * windowH / camera.rect.h) +*/ (windowH / 2);
+                    x = xnew + (windowW / 2);
+                    y = ynew + (windowH / 2);
                 }
                 x -= (!model.fixed | !model.sprites[i].fixed) * (camera.rect.x * windowW / camera.rect.w);
                 y -= (!model.fixed | !model.sprites[i].fixed) * (camera.rect.y * windowH / camera.rect.h);
@@ -171,16 +171,20 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  * \param rect - SDL_Rect containing bounding box of text
  * \param textColor - color of text
  * \param bgColor - color of background box
+ * \param degrees - rotation angle in degrees
+ * \param flip - SDL_RenderFlip value
  * \param fixed - if true, won't be affected by a scene's camera
  * \param drawPriority - 0 - not drawn. 1-5 - drawn. Lower number = drawn later
  */
-void initCText(cText* text, char* string, SDL_Rect rect, SDL_Color textColor, SDL_Color bgColor, bool fixed, int drawPriority)
+void initCText(cText* text, char* string, SDL_Rect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority)
 {
     text->string = calloc(strlen(string), sizeof(char));
     strcpy(text->string, string);
     text->rect = rect;
     text->textColor = textColor;
     text->bgColor = bgColor;
+    text->flip = flip;
+    text->degrees = degrees;
     text->fixed = fixed;
     text->drawPriority = drawPriority;
 }
@@ -212,8 +216,25 @@ void drawCText(cText text, cCamera camera, bool update)
     SDL_GetRenderDrawColor(mainRenderer, &r, &g, &b, &a);
     SDL_SetRenderDrawColor(mainRenderer, text.bgColor.r, text.bgColor.g, text.bgColor.b, text.bgColor.a);
     SDL_RenderFillRect(mainRenderer, &(text.rect));
-    drawText(text.string, text.rect.x - !text.fixed * (camera.rect.x * windowW / camera.rect.w), text.rect.y - !text.fixed * (camera.rect.y * windowH / camera.rect.h), text.rect.w, text.rect.h, text.textColor, update);
+    int* wh = loadTextTexture(text.string, &text.texture, text.rect.w, text.textColor, true);
+    text.rect.w = wh[0];
+    text.rect.h = wh[1];
+    if (!text.fixed)
+    {
+        float s = sin(degToRad(camera.degrees));
+        float c = cos(degToRad(camera.degrees));
+        text.rect.x -= windowW / 2;
+        text.rect.y -= windowH / 2;
+
+        int xnew = text.rect.x * c - text.rect.y * s;
+        int ynew = text.rect.x * s + text.rect.y * c;
+
+        text.rect.x = xnew + (windowW / 2) - (camera.rect.x * windowW / camera.rect.w);
+        text.rect.y = ynew + (windowH / 2) - (camera.rect.y * windowH / camera.rect.h);
+    }
+    SDL_RenderCopyEx(mainRenderer, text.texture, NULL, &text.rect, text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
     SDL_SetRenderDrawColor(mainRenderer, r, g, b, a);
+    SDL_DestroyTexture(text.texture);
 }
 
 /** \brief Loads in an image resource
