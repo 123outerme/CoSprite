@@ -8,6 +8,11 @@
     #define false 0
     #define true 1
 #endif // bool
+#ifndef PI
+    #define PI (3.14159265359879)
+    #define radToDeg(x) (180.0 * x / PI)
+    #define degToRad(x) (x * PI / 180.0)
+#endif // PI
 
 //struct definitions:
 typedef struct _cSprite {

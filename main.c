@@ -7,7 +7,7 @@ void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRec
 
 int main(int argc, char* argv[])
 {
-    int code = initCrank("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
+    int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
     loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
@@ -39,9 +39,14 @@ int main(int argc, char* argv[])
             camera.rect.x--;
         if (key == SDLK_RIGHT)
             camera.rect.x++;
+        if (key == SDLK_q)
+            camera.degrees -= 10;
+        if (key == SDLK_e)
+            camera.degrees += 10;
         drawCScene(&scene, true);
     }
     destroyCScene(&scene);
+    closeCoSprite();
     return code;
 }
 
