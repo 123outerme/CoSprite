@@ -11,9 +11,9 @@
 
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
-    #define COSPRITE_VERSION_MINOR 4
+    #define COSPRITE_VERSION_MINOR 5
     #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.4.0"
+    #define COSPRITE_VERSION "0.5.0"
 #endif //CoSprite_VERSION
 
 //#includes:
