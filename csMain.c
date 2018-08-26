@@ -218,6 +218,28 @@ SDL_Keycode waitForKey(bool useMouse)
     return keycode;
 }
 
+/** \brief tries to map a key
+* \param key - the new key you want to set
+* \param keyslot - the position in keymaps[] you want to set to
+* \return 1 if successful and sets the keymap, otherwise 0 and preserves keymaps[].
+*/
+bool setKey(SDL_Scancode key, int keyslot)
+{
+    bool conflict = false;
+    for(int i = 0; i < MAX_KEYMAPS; i++)
+    {
+        if (keymaps[i] == SDL_GetScancodeFromKey(key))
+            conflict = true;
+    }
+
+    if (SDL_GetScancodeFromKey(key) == SDL_SCANCODE_LCTRL || SDL_GetScancodeFromKey(key) == SDL_SCANCODE_RCTRL || SDL_GetScancodeFromKey(key) == SDL_SCANCODE_MINUS || SDL_GetScancodeFromKey(key) == SDL_SCANCODE_EQUALS)
+        conflict = true;
+    if (!conflict)
+        keymaps[keyslot] = SDL_GetScancodeFromKey(key);
+
+    return !conflict;
+}
+
 /** \brief converts text to a texture
  *
  * \param text - text you want converted to a texture
@@ -225,7 +247,7 @@ SDL_Keycode waitForKey(bool useMouse)
  * \param maxW - How wide the text can be before wrapping
  * \param color - SDL_Color struct of color to be used
  * \param isBlended - true always
- * \return
+ * \return int[2] holding {width, height}
  *
  */
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended)

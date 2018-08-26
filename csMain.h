@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 5
-    #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.5.0"
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.5.1"
 #endif //CoSprite_VERSION
 
 //#includes:
@@ -49,6 +49,7 @@ bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 SDL_Keycode getKey(bool useMouse);
 SDL_Keycode waitForKey(bool useMouse);
+bool setKey(SDL_Scancode key, int keyslot);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
 //global variable declarations:
@@ -57,8 +58,17 @@ SDL_Surface* mainScreen;
 SDL_Renderer* mainRenderer;
 TTF_Font* mainFont;
 
+#define MAX_KEYMAPS 20
 int windowW, windowH;
 bool canDrawText;
 int soundVolume, musicVolume;
+SDL_Scancode keymaps[MAX_KEYMAPS];
+
+#define KEY_UP keymaps[0]
+#define KEY_DOWN keymaps[1]
+#define KEY_LEFT keymaps[2]
+#define KEY_RIGHT keymaps[3]
+#define KEY_CONFIRM keymaps[4]
+#define KEY_BACK keymaps[5]
 
 #endif // CSMAIN_H_INCLUDED
