@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
-    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 120, 150}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
@@ -44,6 +44,8 @@ int main(int argc, char* argv[])
             camera.degrees -= 10;
         if (key == SDLK_e)
             camera.degrees += 10;
+        if (key == SDLK_F12)
+            printf("%d, %d\n", model.rect.x, model.rect.y);
         drawCScene(&scene, true);
     }
     destroyCScene(&scene);
@@ -155,7 +157,7 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
                 }
             }
         }
-        drawCSprite(cursor, (cCamera) {(SDL_Rect) {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, 1.0, 0.0}, true);
+        drawCSprite(cursor, (cCamera) {(SDL_Rect) {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, 1.0, 0.0}, true, false);
     }
     return selection;
 }
