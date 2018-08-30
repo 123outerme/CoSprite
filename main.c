@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
     c2DModel model;
     initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (SDL_Point) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     cCamera camera;
-    initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
+    initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.5, 0.0);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, (c2DModel*[1]) {&model}, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     int key;

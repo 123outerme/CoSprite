@@ -89,7 +89,7 @@ typedef struct _cText {
 
 typedef struct _cCamera {
     SDL_Rect rect;
-    double zoom;
+    double scale;
     double degrees;
 } cCamera;
 
@@ -131,7 +131,7 @@ void drawCText(cText text, cCamera camera, bool update);
 void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), int drawPriority);
 void drawCResource(cResource* res);
 void destroyCResource(cResource* res);
-void initCCamera(cCamera* camera, SDL_Rect rect, double zoom, double degrees);
+void initCCamera(cCamera* camera, SDL_Rect rect, double scale, double degrees);
 void destroyCCamera(cCamera* camera);
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* sprites[], int spriteCount, c2DModel* models[], int modelCount, cResource* resources[], int resCount, cText* strings[], int stringCount);
 void destroyCScene(cScene* scenePtr);

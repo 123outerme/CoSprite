@@ -64,15 +64,16 @@ void destroyCSprite(cSprite* sprite)
  */
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride)
 {
-    SDL_Point point = (SDL_Point) {sprite.drawRect.x, sprite.drawRect.y};
-    point = rotatePoint(point, (SDL_Point) {sprite.drawRect.x + sprite.center.x, sprite.drawRect.y + sprite.center.y}, sprite.degrees);
+    double scale = sprite.scale * (sprite.fixed ? 1.0 : camera.scale);
+    SDL_Point point = (SDL_Point) {sprite.drawRect.x * scale, sprite.drawRect.y * scale};
+    point = rotatePoint(point, (SDL_Point) {sprite.drawRect.x + sprite.center.x * scale, sprite.drawRect.y + sprite.center.y * scale}, sprite.degrees);
     if (!(sprite.fixed | fixedOverride))
     {
         point = rotatePoint(point, (SDL_Point) {windowW / 2, windowH / 2}, camera.degrees);
         point.x -= camera.rect.x * windowW / camera.rect.w;
         point.y -= camera.rect.y * windowH / camera.rect.h;
     }
-    SDL_RenderCopyEx(mainRenderer, sprite.texture, &(sprite.srcClipRect), &((SDL_Rect) {.x = point.x, .y = point.y, .w = sprite.drawRect.w * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom), .h = sprite.drawRect.h * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom)}), sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
+    SDL_RenderCopyEx(mainRenderer, sprite.texture, &(sprite.srcClipRect), &((SDL_Rect) {.x = point.x, .y = point.y, .w = sprite.drawRect.w * sprite.scale * (sprite.fixed ? 1.0 : camera.scale), .h = sprite.drawRect.h * sprite.scale * (sprite.fixed ? 1.0 : camera.scale)}), sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
     if (update)
         SDL_RenderPresent(mainRenderer);
 }
@@ -147,20 +148,21 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
             if (model.sprites[i].drawPriority == priority)
             {
                 {
-                    SDL_Point point = {model.sprites[i].drawRect.x + model.rect.x, model.sprites[i].drawRect.y + model.rect.y};
+                    double scale = model.scale * model.sprites[i].scale * (model.fixed | model.sprites[i].fixed ? 1.0 : camera.scale);
+                    SDL_Point point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
 
-                    point = rotatePoint(point, (SDL_Point) {model.rect.x + model.center.x, model.rect.y + model.center.y}, model.degrees);
-                    point = rotatePoint(point, (SDL_Point) {point.x + model.sprites[i].center.x, point.y + model.sprites[i].center.y}, model.sprites[i].degrees);
+                    point = rotatePoint(point, (SDL_Point) {(model.rect.x + model.center.x) * scale, (model.rect.y + model.center.y) * scale}, model.degrees);
+                    point = rotatePoint(point, (SDL_Point) {point.x + model.sprites[i].center.x * scale, point.y + model.sprites[i].center.y * scale}, model.sprites[i].degrees);
 
                     if (!(model.sprites[i].fixed | model.fixed))
                     {
-                        point = rotatePoint(point, (SDL_Point) {windowW / 2 /*- model.sprites[i].drawRect.w / 2*/, windowH / 2 /*- model.sprites[i].drawRect.h*/}, camera.degrees);
+                        point = rotatePoint(point, (SDL_Point) {windowW / 2 , windowH / 2}, camera.degrees);
 
                         point.x -= camera.rect.x * windowW / camera.rect.w;
                         point.y -= camera.rect.y * windowH / camera.rect.h;
                     }
 
-                    SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &(model.sprites[i].srcClipRect), &((SDL_Rect) {.x = point.x, .y = point.y, .w = model.sprites[i].drawRect.w * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom), .h = model.sprites[i].drawRect.h * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom)}), model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees), &((SDL_Point) {0, 0}), model.sprites[i].flip + model.flip);
+                    SDL_RenderCopyEx(mainRenderer, model.sprites[i].texture, &(model.sprites[i].srcClipRect), &((SDL_Rect) {.x = point.x, .y = point.y, .w = model.sprites[i].drawRect.w * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.scale), .h = model.sprites[i].drawRect.h * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.scale)}), model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees), &((SDL_Point) {0, 0}), model.sprites[i].flip + model.flip);
                     if (update)
                         SDL_RenderPresent(mainRenderer);
                 }
@@ -283,10 +285,10 @@ void destroyCResource(cResource* res)
  * \param rect - the bounding rect of the camera
  * \param degrees - angle of rotation in degrees
  */
-void initCCamera(cCamera* camera, SDL_Rect rect, double zoom, double degrees)
+void initCCamera(cCamera* camera, SDL_Rect rect, double scale, double degrees)
 {
     camera->rect = rect;
-    camera->zoom = zoom;
+    camera->scale = scale;
     camera->degrees = degrees;
 }
 
@@ -297,7 +299,7 @@ void initCCamera(cCamera* camera, SDL_Rect rect, double zoom, double degrees)
 void destroyCCamera(cCamera* camera)
 {
     camera->rect = (SDL_Rect) {0, 0, 0, 0};
-    camera->zoom = 1.0;
+    camera->scale = 1.0;
     camera->degrees = 0.0;
 }
 
