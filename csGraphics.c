@@ -151,8 +151,8 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                     double scale = model.scale * model.sprites[i].scale * (model.fixed | model.sprites[i].fixed ? 1.0 : camera.scale);
                     SDL_Point point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
 
-                    point = rotatePoint(point, (SDL_Point) {(model.rect.x + model.center.x) * scale, (model.rect.y + model.center.y) * scale}, model.degrees);
                     point = rotatePoint(point, (SDL_Point) {point.x + model.sprites[i].center.x * scale, point.y + model.sprites[i].center.y * scale}, model.sprites[i].degrees);
+                    point = rotatePoint(point, (SDL_Point) {(model.rect.x + model.center.x) * scale, (model.rect.y + model.center.y) * scale}, model.degrees);
 
                     if (!(model.sprites[i].fixed | model.fixed))
                     {

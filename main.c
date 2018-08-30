@@ -11,13 +11,13 @@ int main(int argc, char* argv[])
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
-    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {120, 120, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {120, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
-    loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {120, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
+    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 120, 150}, (SDL_Rect) {0, 0, 120, 150}, (SDL_Point) {60, 75}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, (SDL_Point) {75, 60}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (SDL_Point) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     cCamera camera;
-    initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.5, 0.0);
+    initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, (c2DModel*[1]) {&model}, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     int key;
