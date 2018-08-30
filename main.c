@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
-    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {120, 120, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {0, 0}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {120, 120, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {120, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {120, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
@@ -25,13 +25,44 @@ int main(int argc, char* argv[])
     {
         key = getKey(false);
         if (key == SDLK_w)
+        {
             model.rect.y -= 8;
+            if (scene.modelCount == 0)
+            {
+                lowerSprite.drawRect.y -= 8;
+                upperSprite.drawRect.y -= 8;
+            }
+        }
+
         if (key == SDLK_s)
+        {
             model.rect.y += 8;
+            if (scene.modelCount == 0)
+            {
+                lowerSprite.drawRect.y += 8;
+                upperSprite.drawRect.y += 8;
+            }
+        }
+
         if (key == SDLK_a)
+        {
             model.rect.x -= 8;
+            if (scene.modelCount == 0)
+            {
+                lowerSprite.drawRect.x -= 8;
+                upperSprite.drawRect.x -= 8;
+            }
+        }
+
         if (key == SDLK_d)
+        {
             model.rect.x += 8;
+            if (scene.modelCount == 0)
+            {
+                lowerSprite.drawRect.x += 8;
+                upperSprite.drawRect.x += 8;
+            }
+        }
 
         if (key == SDLK_UP)
             camera.rect.y--;
@@ -54,11 +85,15 @@ int main(int argc, char* argv[])
 
         if (key == SDLK_MINUS)
         {
+            lowerSprite.degrees -= 10;
+            upperSprite.degrees -= 10;
             model.sprites[0].degrees -= 10;
             model.sprites[1].degrees -= 10;
         }
         if (key == SDLK_EQUALS)
         {
+            lowerSprite.degrees += 10;
+            upperSprite.degrees += 10;
             model.sprites[0].degrees += 10;
             model.sprites[1].degrees += 10;
         }

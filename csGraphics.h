@@ -137,7 +137,7 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* s
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
-SDL_Point rotatePoint(SDL_Point pt, SDL_Point center, int degrees, bool visualize, SDL_Color visualizeColor);
+SDL_Point rotatePoint(SDL_Point pt, SDL_Point center, int degrees);
 
 //global variable declarations:
 SDL_Window* mainWindow;
