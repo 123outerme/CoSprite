@@ -3,7 +3,7 @@
 #include "csIO.h"
 #include "csUtility.h"
 
-void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
+void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, SDL_Point center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void));
 
 int main(int argc, char* argv[])
@@ -11,11 +11,11 @@ int main(int argc, char* argv[])
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
-    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 120, 150}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
-    loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
+    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {120, 120, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {0, 0}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 120, 120}, (SDL_Rect) {0, 0, 120, 120}, (SDL_Point) {120, 120}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
-    initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, 0, 0, 150, 150, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
+    initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (SDL_Point) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     cCamera camera;
     initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
     cScene scene;
@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
             model.rect.x -= 8;
         if (key == SDLK_d)
             model.rect.x += 8;
+
         if (key == SDLK_UP)
             camera.rect.y--;
         if (key == SDLK_DOWN)
@@ -40,12 +41,30 @@ int main(int argc, char* argv[])
             camera.rect.x--;
         if (key == SDLK_RIGHT)
             camera.rect.x++;
+
         if (key == SDLK_q)
             camera.degrees -= 10;
         if (key == SDLK_e)
             camera.degrees += 10;
+
+        if (key == SDLK_z)
+            model.degrees -= 10;
+        if (key == SDLK_c)
+            model.degrees += 10;
+
+        if (key == SDLK_MINUS)
+        {
+            model.sprites[0].degrees -= 10;
+            model.sprites[1].degrees -= 10;
+        }
+        if (key == SDLK_EQUALS)
+        {
+            model.sprites[0].degrees += 10;
+            model.sprites[1].degrees += 10;
+        }
+
         if (key == SDLK_F12)
-            printf("%d, %d\n", model.rect.x, model.rect.y);
+            printf("%d, %d center %d, %d\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
         drawCScene(&scene, true);
     }
     destroyCScene(&scene);
@@ -53,11 +72,11 @@ int main(int argc, char* argv[])
     return code;
 }
 
-void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
+void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, SDL_Point center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
 {
     SDL_Texture* tempTexture;
     loadIMG(filePath, &tempTexture);
-    initCSprite(sprite, tempTexture, 1, rect, clipRect, scale, flip, degrees, fixed, subclass, priority);
+    initCSprite(sprite, tempTexture, 1, rect, clipRect, &center, scale, flip, degrees, fixed, subclass, priority);
 }
 
 /** \brief Draws a standard menu
