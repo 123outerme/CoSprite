@@ -3,7 +3,7 @@
 #include "csIO.h"
 #include "csUtility.h"
 
-void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, SDL_Point center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
+void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void));
 
 int main(int argc, char* argv[])
@@ -11,13 +11,13 @@ int main(int argc, char* argv[])
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
-    loadSprite(&lowerSprite, "cb.bmp", (SDL_Rect) {50, 50, 120, 150}, (SDL_Rect) {0, 0, 120, 150}, (SDL_Point) {60, 75}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
-    loadSprite(&upperSprite, "cb.bmp", (SDL_Rect) {0, 0, 150, 120}, (SDL_Rect) {0, 0, 150, 120}, (SDL_Point) {75, 60}, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
-    initCText(&txt, "Hello world!", (SDL_Rect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
+    loadSprite(&lowerSprite, "cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&upperSprite, "cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
+    initCText(&txt, "Hello world!", (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
-    initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (SDL_Point) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
+    initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (cDoublePt) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     cCamera camera;
-    initCCamera(&camera, (SDL_Rect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
+    initCCamera(&camera, (cDoubleRect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, (c2DModel*[1]) {&model}, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     int key;
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
         }
 
         if (key == SDLK_F12)
-            printf("%d, %d center %d, %d\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
+            printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
         drawCScene(&scene, true);
     }
     destroyCScene(&scene);
@@ -107,11 +107,13 @@ int main(int argc, char* argv[])
     return code;
 }
 
-void loadSprite(cSprite* sprite, char* filePath, SDL_Rect rect, SDL_Rect clipRect, SDL_Point center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
+void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
 {
     SDL_Texture* tempTexture;
     loadIMG(filePath, &tempTexture);
-    initCSprite(sprite, tempTexture, 1, rect, clipRect, &center, scale, flip, degrees, fixed, subclass, priority);
+    if (!center)
+        center = &((cDoublePt) {rect.w / 2, rect.h / 2});
+    initCSprite(sprite, tempTexture, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
 }
 
 /** \brief Draws a standard menu
@@ -136,7 +138,7 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
         curSelect = 1;
     if (options < 0)
         return ANYWHERE_QUIT;
-    cursor.drawRect = (SDL_Rect) {.x = TILE_SIZE, .y = (curSelect + 4) * TILE_SIZE, .w = TILE_SIZE, .h = TILE_SIZE};
+    cursor.drawRect = (cDoubleRect) {.x = TILE_SIZE, .y = (curSelect + 4) * TILE_SIZE, .w = TILE_SIZE, .h = TILE_SIZE};
     SDL_Event e;
     bool quit = false;
     int selection = -1;
@@ -211,7 +213,7 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
                 }
             }
         }
-        drawCSprite(cursor, (cCamera) {(SDL_Rect) {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, 1.0, 0.0}, true, false);
+        drawCSprite(cursor, (cCamera) {(cDoubleRect) {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, 1.0, 0.0}, true, false);
     }
     return selection;
 }
