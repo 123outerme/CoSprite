@@ -410,10 +410,11 @@ void destroyCScene(cScene* scenePtr)
  * \param scenePtr - pointer to your cScene
  * \param redraw - if nonzero, will update the screen
  */
-void drawCScene(cScene* scenePtr, bool redraw)
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
 {
     SDL_SetRenderDrawColor(mainRenderer, scenePtr->bgColor.r, scenePtr->bgColor.g, scenePtr->bgColor.b, scenePtr->bgColor.a);
-    SDL_RenderClear(mainRenderer);
+    if (clearScreen)
+        SDL_RenderClear(mainRenderer);
     for(int priority = 5; priority >= 1; priority--)
     {
         for(int i = 0; i < scenePtr->spriteCount; i++)
