@@ -141,9 +141,9 @@ void destroyC2DModel(c2DModel* model)
  */
 void drawC2DModel(c2DModel model, cCamera camera, bool update)
 {
-    for(int i = 0; i < model.numSprites; i++)
+    for(int priority = 5; priority >= 1; priority--)
     {
-        for(int priority = 5; priority >= 1; priority--)
+        for(int i = 0; i < model.numSprites; i++)
         {
             if (model.sprites[i].drawPriority == priority)
             {
