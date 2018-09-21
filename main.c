@@ -1,4 +1,3 @@
-#include "csFile.h"
 #include "csGraphics.h"
 #include "csIO.h"
 #include "csUtility.h"
@@ -11,12 +10,19 @@ int main(int argc, char* argv[])
     argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
-    cText txt;
     loadSprite(&lowerSprite, "cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
+    cText txt;
     initCText(&txt, "Hello world!", (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
-    initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (cDoublePt) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
+    if (checkFile("exported.txt", 1))
+    {
+        importC2DModel(&model, "exported.txt");
+    }
+    else
+    {
+        initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (cDoublePt) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
+    }
     cCamera camera;
     initCCamera(&camera, (cDoubleRect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
     cScene scene;
@@ -103,6 +109,7 @@ int main(int argc, char* argv[])
             printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
         drawCScene(&scene, true, true);
     }
+    exportC2DModel(&model, "exported.txt");
     destroyCScene(&scene);
     closeCoSprite();
     return code;
@@ -110,11 +117,9 @@ int main(int argc, char* argv[])
 
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
 {
-    SDL_Texture* tempTexture;
-    loadIMG(filePath, &tempTexture);
     if (!center)
         center = &((cDoublePt) {rect.w / 2, rect.h / 2});
-    initCSprite(sprite, tempTexture, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
+    initCSprite(sprite, filePath, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
 }
 
 /** \brief Draws a standard menu

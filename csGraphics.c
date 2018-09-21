@@ -3,7 +3,7 @@
 /** \brief Initializes a cSprite object. You may want to create a wrapper method.
  *
  * \param sprite - a pointer to your sprite.
- * \param texture - a SDL_Texture* that holds your sprite's image
+ * \param textureFilepath - a char* that holds your texture's filepath
  * \param x - x position onscreen
  * \param y - y position onscreen
  * \param w - width of your sprite
@@ -15,9 +15,10 @@
  * \param fixed - if true, won't be affected by a scene's camera
  * \param drawPriority - 0 - not drawn. 1-5 - drawn. Lower number = drawn later
  */
-void initCSprite(cSprite* sprite, SDL_Texture* texture, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority)
+void initCSprite(cSprite* sprite, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority)
 {
-    sprite->texture = texture;
+    strncpy(sprite->textureFilepath, textureFilepath, MAX_PATH);
+    loadIMG(textureFilepath, &(sprite->texture));
     sprite->id = id;
     sprite->drawRect = drawRect;
     sprite->srcClipRect = srcClipRect;
@@ -93,7 +94,9 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
  */
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt position, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority)
 {
-    model->sprites = (numSprites) ? sprites : NULL;
+    model->sprites = calloc(numSprites, sizeof(cSprite));
+    memcpy((void*) model->sprites, (void*) sprites, numSprites * sizeof(cSprite));
+    //model->sprites = (numSprites) ? sprites : NULL;
     model->numSprites = numSprites;
     model->rect = (cDoubleRect) {position.x, position.y, 0, 0};
     for(int i = 0; i < numSprites; i++)
@@ -123,6 +126,7 @@ void destroyC2DModel(c2DModel* model)
 {
     for(int i = 0; i < model->numSprites; i++)
         destroyCSprite(&model->sprites[i]);
+    free(model->sprites);
     model->rect = (cDoubleRect) {0, 0, 0, 0};
     model->scale = 0;
     model->degrees = 0;
@@ -131,6 +135,80 @@ void destroyC2DModel(c2DModel* model)
     free(model->subclass);
     model->subclass = NULL;
     model->drawPriority = 0;
+}
+
+/** \brief loads a C2DModel from a file
+ *
+ * \param model - c2DModel you want the data to be loaded to
+ * \param filepath - where to get the file from
+*/
+void importC2DModel(c2DModel* model, char* filepath)
+{
+    char* data = calloc(2048, sizeof(char));
+    readLine(filepath, 0, 2048, &data);
+    model->numSprites = strtol(strtok(data, "{,}"), NULL, 10);
+    model->rect.x = strtod(strtok(NULL, "{,}"), NULL);
+    model->rect.y = strtod(strtok(NULL, "{,}"), NULL);
+    model->rect.w = strtod(strtok(NULL, "{,}"), NULL);
+    model->rect.h = strtod(strtok(NULL, "{,}"), NULL);
+    model->center.x = strtod(strtok(NULL, "{,}"), NULL);
+    model->center.y = strtod(strtok(NULL, "{,}"), NULL);
+    model->scale = strtod(strtok(NULL, "{,}"), NULL);
+    model->flip = strtol(strtok(NULL, "{,}"), NULL, 10);
+    model->degrees = strtod(strtok(NULL, "{,}"), NULL);
+    model->drawPriority = strtol(strtok(NULL, "{,}"), NULL, 10);
+    model->fixed = strtol(strtok(NULL, "{,}"), NULL, 10);
+    model->sprites = calloc(model->numSprites, sizeof(cSprite));
+    for(int i = 0; i < model->numSprites; i++)
+    {
+        readLine(filepath, i + 1, 2048, &data);
+        strncpy(model->sprites[i].textureFilepath, strtok(data, "{,}"), MAX_PATH);
+        loadIMG(model->sprites[i].textureFilepath, &(model->sprites[i].texture));
+        model->sprites[i].id = strtol(strtok(NULL, "{,}"), NULL, 10);
+        model->sprites[i].drawRect.x = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].drawRect.y = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].drawRect.w = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].drawRect.h = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].srcClipRect.x = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].srcClipRect.y = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].srcClipRect.w = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].srcClipRect.h = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].center.x = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].center.y = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].scale = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].flip = strtol(strtok(NULL, "{,}"), NULL, 10);
+        model->sprites[i].degrees = strtod(strtok(NULL, "{,}"), NULL);
+        model->sprites[i].drawPriority = strtol(strtok(NULL, "{,}"), NULL, 10);
+        model->sprites[i].fixed = strtol(strtok(NULL, "{,}"), NULL, 10);
+        model->sprites[i].subclass = NULL;
+    }
+    free(data);
+    model->subclass = NULL;
+}
+
+/** \brief converts a c2DModel into text and saves it to a file
+ *
+ * \param model - c2DModel you want saved
+ * \param filepath - where to save the file to
+*/
+void exportC2DModel(c2DModel* model, char* filepath)
+{
+    createFile(filepath);
+    char* data = calloc(2048, sizeof(char));
+    snprintf(data, 2048, "{%d,%f,%f,%f,%f,%f,%f,%f,%d,%f,%d,%d}", model->numSprites, model->rect.x, model->rect.y, model->rect.w,
+             model->rect.h, model->center.x, model->center.y, model->scale, model->flip, model->degrees,
+             model->drawPriority, model->fixed);
+    appendLine(filepath, data, true);
+    for(int i = 0; i < model->numSprites; i++)
+    {
+        snprintf(data, 2048, "{%s,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f,%d,%d}", model->sprites[i].textureFilepath, model->sprites[i].id,
+                 model->sprites[i].drawRect.x, model->sprites[i].drawRect.y, model->sprites[i].drawRect.w, model->sprites[i].drawRect.h,
+                 model->sprites[i].srcClipRect.x, model->sprites[i].srcClipRect.y, model->sprites[i].srcClipRect.w,
+                 model->sprites[i].srcClipRect.h, model->sprites[i].center.x, model->sprites[i].center.y, model->sprites[i].scale,
+                 model->sprites[i].flip, model->sprites[i].degrees, model->sprites[i].drawPriority, model->sprites[i].fixed);
+        appendLine(filepath, data, true);
+    }
+    free(data);
 }
 
 /** \brief draws a c2DModel to the screen
@@ -783,7 +861,7 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
     }
 
     strncpy(allLines[lineNum], stuff, maxLength);
-    if (addNewline);
+    if (addNewline)
         strncat(allLines[lineNum], "\n", maxLength);
     //printf("%s at %d\n", allLines[lineNum], lineNum);
 

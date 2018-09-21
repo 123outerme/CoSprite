@@ -45,6 +45,9 @@
     #define radToDeg(x) (180.0 * x / PI)
     #define degToRad(x) (x * PI / 180.0)
 #endif // PI
+#ifndef MAX_PATH
+#define MAX_PATH	(260)
+#endif  //MAX_PATH
 
 
 
@@ -63,6 +66,7 @@ typedef struct _cDoublePt {
 
 typedef struct _cSprite {
     SDL_Texture* texture;
+    char textureFilepath[MAX_PATH];
     int id;
     cDoubleRect drawRect;
     cDoubleRect srcClipRect;
@@ -135,11 +139,13 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
 //drawing
-void initCSprite(cSprite* sprite, SDL_Texture* texture, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
+void initCSprite(cSprite* sprite, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride);
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt position, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
 void destroyC2DModel(c2DModel* model);
+void importC2DModel(c2DModel* model, char* filepath);
+void exportC2DModel(c2DModel* model, char* filepath);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
 void initCText(cText* text, char* string, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
 void destroyCText(cText* text);
