@@ -117,9 +117,11 @@ int main(int argc, char* argv[])
 
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority)
 {
+    SDL_Texture* tempTexture;
+    loadIMG(filePath, &tempTexture);
     if (!center)
         center = &((cDoublePt) {rect.w / 2, rect.h / 2});
-    initCSprite(sprite, filePath, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
+    initCSprite(sprite, tempTexture, filePath, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
 }
 
 /** \brief Draws a standard menu

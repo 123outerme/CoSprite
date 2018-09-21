@@ -3,6 +3,7 @@
 /** \brief Initializes a cSprite object. You may want to create a wrapper method.
  *
  * \param sprite - a pointer to your sprite.
+ * \param texture - an SDL_Texture with your sprite's image
  * \param textureFilepath - a char* that holds your texture's filepath
  * \param x - x position onscreen
  * \param y - y position onscreen
@@ -15,10 +16,10 @@
  * \param fixed - if true, won't be affected by a scene's camera
  * \param drawPriority - 0 - not drawn. 1-5 - drawn. Lower number = drawn later
  */
-void initCSprite(cSprite* sprite, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority)
+void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority)
 {
+    sprite->texture = texture;
     strncpy(sprite->textureFilepath, textureFilepath, MAX_PATH);
-    loadIMG(textureFilepath, &(sprite->texture));
     sprite->id = id;
     sprite->drawRect = drawRect;
     sprite->srcClipRect = srcClipRect;
