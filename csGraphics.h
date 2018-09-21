@@ -126,12 +126,15 @@ typedef struct _cScene {
 } cScene;
 
 //function prototypes:
+
+//initialization
 int initCoSprite();
 void closeCoSprite();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
+//drawing
 void initCSprite(cSprite* sprite, SDL_Texture* texture, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride);
@@ -152,9 +155,16 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, int degrees);
 
+//file I/O
+int createFile(char* filePath);
+int checkFile(char* filePath, int desiredLines);
+int appendLine(char* filePath, char* stuff, bool addNewline);
+int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool addNewline);
+char* readLine(char* filePath, int lineNum, int maxLength, char** output);
+
+
 //global variable declarations:
 SDL_Window* mainWindow;
-SDL_Surface* mainScreen;
 SDL_Renderer* mainRenderer;
 TTF_Font* mainFont;
 

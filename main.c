@@ -8,6 +8,7 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
 
 int main(int argc, char* argv[])
 {
+    argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24);
     cSprite lowerSprite, upperSprite;
     cText txt;
