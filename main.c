@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
         initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (cDoublePt) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     }
     cCamera camera;
-    initCCamera(&camera, (cDoubleRect) {0, 0, windowW / 48, windowH / 48}, 1.0, 0.0);
+    initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, (c2DModel*[1]) {&model}, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     int key;
@@ -141,7 +141,7 @@ void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect c
 */
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void))
 {
-    const int ANYWHERE_QUIT = -1, SCREEN_WIDTH = windowW, SCREEN_HEIGHT = windowH, TILE_SIZE = 48, MAX_ITEMS = 9, HEIGHT_IN_TILES = SCREEN_HEIGHT / TILE_SIZE;
+    const int ANYWHERE_QUIT = -1, SCREEN_WIDTH = global.windowW, SCREEN_HEIGHT = global.windowH, TILE_SIZE = 48, MAX_ITEMS = 9, HEIGHT_IN_TILES = SCREEN_HEIGHT / TILE_SIZE;
     if (curSelect < 1)
         curSelect = 1;
     if (options < 0)
@@ -154,14 +154,14 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
     while(!quit)
     {
         if (border)
-            SDL_SetRenderDrawColor(mainRenderer, textColor.r, textColor.g, textColor.b, 0xFF);
+            SDL_SetRenderDrawColor(global.mainRenderer, textColor.r, textColor.g, textColor.b, 0xFF);
         else
-            SDL_SetRenderDrawColor(mainRenderer, bgColor.r, bgColor.g, bgColor.b, 0xFF);
+            SDL_SetRenderDrawColor(global.mainRenderer, bgColor.r, bgColor.g, bgColor.b, 0xFF);
 
-        SDL_RenderClear(mainRenderer);
-        SDL_RenderFillRect(mainRenderer, NULL);
-        SDL_SetRenderDrawColor(mainRenderer, bgColor.r, bgColor.g, bgColor.b, 0xFF);
-        SDL_RenderFillRect(mainRenderer, &((SDL_Rect){.x = SCREEN_WIDTH / 128, .y = SCREEN_HEIGHT / 128, .w = 126 * SCREEN_WIDTH / 128, .h = 126 * SCREEN_HEIGHT / 128}));
+        SDL_RenderClear(global.mainRenderer);
+        SDL_RenderFillRect(global.mainRenderer, NULL);
+        SDL_SetRenderDrawColor(global.mainRenderer, bgColor.r, bgColor.g, bgColor.b, 0xFF);
+        SDL_RenderFillRect(global.mainRenderer, &((SDL_Rect){.x = SCREEN_WIDTH / 128, .y = SCREEN_HEIGHT / 128, .w = 126 * SCREEN_WIDTH / 128, .h = 126 * SCREEN_HEIGHT / 128}));
         //background text (drawn first)
         drawText(title, TILE_SIZE + TILE_SIZE / 4, 11 * SCREEN_HEIGHT / 128, SCREEN_WIDTH, 119 * SCREEN_HEIGHT / 128, titleColorUnder, false);
         //foreground text
@@ -172,7 +172,7 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
         if (extraDrawing)
             (*extraDrawing)();
 
-        //SDL_RenderFillRect(mainRenderer, &((SDL_Rect){.x = cursor.x, .y = cursor.y, .w = cursor.w, .h = cursor.w}));
+        //SDL_RenderFillRect(global.mainRenderer, &((SDL_Rect){.x = cursor.x, .y = cursor.y, .w = cursor.w, .h = cursor.w}));
         //Handle events on queue
         while(SDL_PollEvent(&e) != 0)
         {

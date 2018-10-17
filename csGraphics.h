@@ -55,7 +55,14 @@
 typedef struct _coSprite {
     SDL_Window** windows;
     int windowsOpen;
+    SDL_Renderer* mainRenderer;
+    TTF_Font* mainFont;
+    int windowW;
+    int windowH;
     SDL_Color colorKey;
+    bool canDrawText;
+    int soundVolume;
+    int musicVolume;
 } coSprite;
 
 typedef struct _cDoubleRect {
@@ -179,12 +186,6 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
 //global variable declarations:
 SDL_Window* mainWindow;
-SDL_Renderer* mainRenderer;
-TTF_Font* mainFont;
 coSprite global;
-
-int windowW, windowH;
-bool canDrawText;
-int soundVolume, musicVolume;
 
 #endif // CSGRAPHICS_H_INCLUDED
