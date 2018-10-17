@@ -15,9 +15,9 @@ int main(int argc, char* argv[])
     cText txt;
     initCText(&txt, "Hello world!", (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
-    if (checkFile("exported.txt", 1))
+    if (checkFile("exported.bin", 1))
     {
-        importC2DModel(&model, "exported.txt");
+        importC2DModel(&model, "exported.bin");
     }
     else
     {
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
             printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
         drawCScene(&scene, true, true);
     }
-    exportC2DModel(&model, "exported.txt");
+    exportC2DModel(&model, "exported.bin");
     destroyCScene(&scene);
     closeCoSprite();
     return code;

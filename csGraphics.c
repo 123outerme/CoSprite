@@ -575,7 +575,7 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
 /** \brief Initializes an SDL window and all of CoSprite's inner stuff.
  * \return Code 0: No error. Code 1: SDL systems failed to initialize. Code 2: Window could not be created Code 3: Renderer failed to initialize
  */
-int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize)
+int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize, SDL_Color transparentColor)
 {
     int status = 0;
     mainWindow = NULL;
@@ -619,6 +619,9 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
         }
         else
         {
+            global.windows = calloc(1, sizeof(SDL_Window*));
+            global.windows[0] = mainWindow;
+            global.windowsOpen = 1;
             windowW = windowWidth;
             windowH = windowHeight;
             mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
@@ -629,6 +632,7 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
             }
             else
             {
+                global.colorKey = transparentColor;
                 SDL_Surface* iconSurface = IMG_Load(iconPath);
                 SDL_SetWindowIcon(mainWindow, iconSurface);
                 SDL_FreeSurface(iconSurface);
@@ -683,6 +687,22 @@ void closeCoSprite()
     SDL_Quit();
 }
 
+int openCWindow(SDL_Window* windowPtr, char* windowName, int windowWidth, int windowHeight)
+{
+    windowPtr = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    global.windows = realloc((void*) global.windows, global.windowsOpen + 1);
+    global.windows[global.windowsOpen] = windowPtr;
+    return global.windowsOpen++;
+}
+
+void closeCWindow(int windowPos)
+{
+    SDL_DestroyWindow(global.windows[windowPos]);
+    global.windows[windowPos] = NULL;
+    global.windows = realloc((void*) global.windows, global.windowsOpen - 1);
+    global.windowsOpen--;
+}
+
 /** \brief Loads an image into a SDL_Texture*
  *
  * \param imgPath - valid string filepath (relative or absolute)
@@ -697,7 +717,7 @@ bool loadIMG(char* imgPath, SDL_Texture** dest)
 	printf("Unable to load image for %s! SDL_Error: %s\n", imgPath, SDL_GetError());
         return false;
     }
-    SDL_SetColorKey(surf, 1, SDL_MapRGB(surf->format, 255, 28, 198));
+    SDL_SetColorKey(surf, 1, SDL_MapRGB(surf->format, global.colorKey.r, global.colorKey.g, global.colorKey.b));
     *dest = SDL_CreateTextureFromSurface(mainRenderer, surf);
     if (!(*dest))
     {
