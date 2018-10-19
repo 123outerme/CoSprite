@@ -696,7 +696,7 @@ bool checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast)
         {
             for(int x = 0; x < model2.numSprites; x++)
             {
-                collisionFound = checkCSpriteCollision(model1.sprites[i], model2.sprites[x])
+                collisionFound = checkCSpriteCollision(model1.sprites[i], model2.sprites[x]);
                 if (collisionFound)
                     break;
             }

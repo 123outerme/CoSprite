@@ -99,8 +99,8 @@ typedef struct _cSprite {
     double scale;
     SDL_RendererFlip flip;
     double degrees;
-    int drawPriority;  /**< 0 - not drawn. 1-5 - drawn. Lower number = drawn later * /
-    bool fixed;  /**< if true, won't be affected by camera movement * /
+    int drawPriority;  / **< 0 - not drawn. 1-5 - drawn. Lower number = drawn later * /
+    bool fixed;  / **< if true, won't be affected by camera movement * /
 } cCircle;*/
 
 typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A collection of sprites with relative coordinates
