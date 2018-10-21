@@ -661,25 +661,32 @@ cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using t
         waitForKey(true);*/
 
         //printf("%f or %f\n", min2 - max1, min1 - max2);
-        if (min2 > max1 || min1 > max2)
+        if (min2 >= max1 || min1 >= max2)
         {
             minTranslationVector = (cDoubleVector) {0, 0};
             break;
         }
         else
-        {
+        {  //finding the overlap is glitched
             double overlap;
-            if (min2 < max1)
-                overlap = fabs(max1 - min2);
+            if (min2 > min1)
+                overlap = max1 - min2;
             else
-                overlap = fabs(max2 - min1);
+                overlap = max2 - min1;
 
-            if (overlap < minTranslationVector.magnitude || minTranslationVector.magnitude == -1)
+            if (fabs(overlap) < minTranslationVector.magnitude || minTranslationVector.magnitude == -1)
                 minTranslationVector = (cDoubleVector) {overlap, normals[i]};
         }
         //check for intersections of the two projected lines
         //  if not found, return false (because according to SAT if one gap in projections is found, there's a separating axis there)
         //  else continue
+    }
+    if (minTranslationVector.magnitude)
+    {
+        SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0x00, 0x00, 0xFF);
+        SDL_RenderDrawLine(global.mainRenderer, corners1[0].x, corners1[0].y, corners1[0].x + minTranslationVector.magnitude * cos(degToRad(minTranslationVector.degrees)), corners1[0].y + minTranslationVector.magnitude * sin(degToRad(minTranslationVector.degrees)));
+        SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+        SDL_RenderPresent(global.mainRenderer);
     }
     return minTranslationVector;
 }
