@@ -669,25 +669,29 @@ cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using t
         else
         {  //finding the overlap is glitched
             double overlap;
+            double degrees = normals[i];
             if (min2 > min1)
-                overlap = max1 - min2;
+            {
+                overlap = max1 - min2;  // - 1; idk why we have to subtract one, on this side it collides one pixel before
+                degrees = degrees + 180;   //this one has to be reversed
+            }
             else
                 overlap = max2 - min1;
 
             if (fabs(overlap) < minTranslationVector.magnitude || minTranslationVector.magnitude == -1)
-                minTranslationVector = (cDoubleVector) {overlap, normals[i]};
+                minTranslationVector = (cDoubleVector) {overlap, degrees};
         }
         //check for intersections of the two projected lines
         //  if not found, return false (because according to SAT if one gap in projections is found, there's a separating axis there)
         //  else continue
     }
-    if (minTranslationVector.magnitude)
-    {
+    /*if (minTranslationVector.magnitude)
+    {  //debugging MTV
         SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0x00, 0x00, 0xFF);
         SDL_RenderDrawLine(global.mainRenderer, corners1[0].x, corners1[0].y, corners1[0].x + minTranslationVector.magnitude * cos(degToRad(minTranslationVector.degrees)), corners1[0].y + minTranslationVector.magnitude * sin(degToRad(minTranslationVector.degrees)));
         SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
         SDL_RenderPresent(global.mainRenderer);
-    }
+    }*/
     return minTranslationVector;
 }
 
