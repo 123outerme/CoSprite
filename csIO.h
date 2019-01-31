@@ -29,6 +29,7 @@
 SDL_Keycode getKey(bool useMouse);
 SDL_Keycode waitForKey(bool useMouse);
 bool setKey(SDL_Scancode key, int keyslot);
+void handleTextInput(char* text, SDL_Keycode key, int maxChar);
 
 //global variable declarations:
 SDL_Scancode keymaps[MAX_KEYMAPS];

@@ -9,6 +9,27 @@ int main(int argc, char* argv[])
 {
     argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    /*bool quit = false;
+    SDL_Keycode key;
+    char filename[FILENAME_MAX - 1] = " ";
+    cText fileText;
+    cCamera cam;
+    cScene fileScene;
+    for(int i = 1; i < FILENAME_MAX; i++)
+        filename[i] = '\0';
+    initCCamera(&cam, (cDoubleRect) {0, 0, 20, 10}, 1.0, 0);
+    initCText(&fileText, filename, (cDoubleRect) {0, 0, global.windowW, global.windowH}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, SDL_FLIP_NONE, 0, true, 5);
+    initCScene(&fileScene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &cam, NULL, 0, NULL, 0, NULL, 0, (cText*[1]) {&fileText}, 1);
+    while(!quit)
+    {
+        key = getKey(false);
+        handleTextInput(filename, key, FILENAME_MAX);
+        fileText.string = filename;
+        drawCScene(&fileScene, true, true);
+        if (key == SDLK_RETURN || key == SDLK_ESCAPE || key == -1)
+            quit = true;
+    }
+    printf("%s\n", filename);*/
     cSprite lowerSprite, upperSprite;
     loadSprite(&lowerSprite, "cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
