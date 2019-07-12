@@ -11,9 +11,9 @@
 
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
-    #define COSPRITE_VERSION_MINOR 9
-    #define COSPRITE_VERSION_PATCH 4
-    #define COSPRITE_VERSION "0.9.4"
+    #define COSPRITE_VERSION_MINOR 10
+    #define COSPRITE_VERSION_PATCH 0
+    #define COSPRITE_VERSION "0.10.0"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -24,10 +24,10 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-#include "SDL/SDL.h"       //This is included because it's an SDL2 program... duh
-#include "SDL/SDL_image.h" //This is included so we can use PNGs.
-#include "SDL/SDL_ttf.h"   //This is included for text stuff
-#include "SDL/SDL_mixer.h" //This is included for audio
+#include "SDL2/SDL.h"       //This is included because it's an SDL2 program... duh
+#include "SDL2/SDL_image.h" //This is included so we can use PNGs.
+#include "SDL2/SDL_ttf.h"   //This is included for text stuff
+#include "SDL2/SDL_mixer.h" //This is included for audio
 
 
 //#defines:
@@ -63,6 +63,7 @@ typedef struct _coSprite {
     bool canDrawText;
     int soundVolume;
     int musicVolume;
+    int renderLayers;  /**< default 5 */
 } coSprite;
 
 typedef struct _cDoubleRect {
@@ -92,7 +93,7 @@ typedef struct _cSprite {
     double scale;
     SDL_RendererFlip flip;
     double degrees;
-    int drawPriority;  /**< 0 - not drawn. 1-5 - drawn. Lower number = drawn later */
+    int renderLayer;  /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     bool fixed;  /**< if true, won't be affected by camera movement */
     void* subclass;  /**< fill with any extraneous data or pointer to another struct */
 } cSprite;
@@ -104,7 +105,7 @@ typedef struct _cSprite {
     double scale;
     SDL_RendererFlip flip;
     double degrees;
-    int drawPriority;  / **< 0 - not drawn. 1-5 - drawn. Lower number = drawn later * /
+    int renderLayer;  / **< 0 - not drawn. 1-5 - drawn. Lower number = drawn later * /
     bool fixed;  / **< if true, won't be affected by camera movement * /
 } cCircle;*/
 
@@ -116,7 +117,7 @@ typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A c
     double scale;
     SDL_RendererFlip flip;
     double degrees;
-    int drawPriority;
+    int renderLayer;
     bool fixed;  /**< if true, won't be affected by camera movement */
     void* subclass;
 } c2DModel;
@@ -125,7 +126,7 @@ typedef struct _cText {
     char* string;
     SDL_Texture* texture;
     cDoubleRect rect;
-    int drawPriority; /**< 0 - not drawn. 1-5 - drawn. Lower number = drawn later */
+    int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     SDL_Color textColor;
     SDL_Color bgColor;
     SDL_RendererFlip flip;
@@ -142,7 +143,7 @@ typedef struct _cCamera {
 typedef struct _cResource {
     void* subclass;
     void (*drawingRoutine)(void*);
-    int drawPriority; /**< 0 - not drawn. 1-5 - drawn. Lower number = drawn later */
+    int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
 } cResource;
 
 typedef struct _cScene {

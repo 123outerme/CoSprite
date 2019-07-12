@@ -1,0 +1,14 @@
+#ignore the media folder
+/media/
+/obj/
+/bin/
+/builds/
+/cs/
+/cs-bin/
+/output/
+*.cbp
+*.depend
+*.layout
+*.cfg
+*.exe
+exported.bin
