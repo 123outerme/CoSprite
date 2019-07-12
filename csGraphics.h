@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 10
-    #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.10.0"
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.10.1"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -123,7 +123,7 @@ typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A c
 } c2DModel;
 
 typedef struct _cText {
-    char* string;
+    char* str;
     SDL_Texture* texture;
     cDoubleRect rect;
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
@@ -179,7 +179,8 @@ void destroyC2DModel(c2DModel* model);
 void importC2DModel(c2DModel* model, char* filepath);
 void exportC2DModel(c2DModel* model, char* filepath);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
-void initCText(cText* text, char* string, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
+void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
 void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), int drawPriority);

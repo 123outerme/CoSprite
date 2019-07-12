@@ -277,11 +277,11 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  * \param fixed - if true, won't be affected by a scene's camera
  * \param renderLayer - 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later
  */
-void initCText(cText* text, char* string, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
 {
-    text->string = calloc(strlen(string), sizeof(char));
-    if (text->string)
-        strcpy(text->string, string);
+    text->str = calloc(strlen(str), sizeof(char));
+    if (text->str)
+        strcpy(text->str, str);
     text->rect = rect;
     text->textColor = textColor;
     text->bgColor = bgColor;
@@ -291,7 +291,7 @@ void initCText(cText* text, char* string, cDoubleRect rect, SDL_Color textColor,
     text->renderLayer = renderLayer;
 
     //init text texture
-    int* wh = loadTextTexture(text->string, &text->texture, text->rect.w, text->textColor, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -299,16 +299,16 @@ void initCText(cText* text, char* string, cDoubleRect rect, SDL_Color textColor,
 /** \brief updates string in a cText obj
  *
  * \param text - cText to modify
- * \param string - new string for the cText to display
+ * \param str - new string for the cText to display
  */
-void updateCText(cText* text, char* string)
+void updateCText(cText* text, char* str)
 {
-    text->string = calloc(strlen(string), sizeof(char));
-    if (text->string)
-        strcpy(text->string, string);
+    text->str = calloc(strlen(str), sizeof(char));
+    if (text->str)
+        strcpy(text->str, str);
 
     //init text texture
-    int* wh = loadTextTexture(text->string, &text->texture, text->rect.w, text->textColor, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -319,8 +319,8 @@ void updateCText(cText* text, char* string)
  */
 void destroyCText(cText* text)
 {
-    free(text->string);
-    text->string = NULL;
+    free(text->str);
+    text->str = NULL;
     text->rect = (cDoubleRect) {0, 0, 0, 0};
     text->textColor = (SDL_Color) {0, 0, 0, 0};
     text->bgColor = (SDL_Color) {0, 0, 0, 0};
@@ -777,15 +777,17 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
         if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
         {
             printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", SDL_GetError());
-            return 1;
+            status = 1;  //this isn't a fatal error
         }
         else
-        //Mix_Init(MIX_INIT_OGG);  //deprecated?
-        global.soundVolume = MIX_MAX_VOLUME;
-        Mix_AllocateChannels(32);
-        Mix_Volume(-1, global.soundVolume);  //sets all channels to the sound level global.soundVolume
-        global.musicVolume = MIX_MAX_VOLUME;
-        Mix_VolumeMusic(global.musicVolume);
+        {
+            //Mix_Init(MIX_INIT_OGG);  //deprecated?
+            global.soundVolume = MIX_MAX_VOLUME;
+            Mix_AllocateChannels(32);
+            Mix_Volume(-1, global.soundVolume);  //sets all channels to the sound level global.soundVolume
+            global.musicVolume = MIX_MAX_VOLUME;
+            Mix_VolumeMusic(global.musicVolume);
+        }
         global.mainRenderer = NULL;
         global.mainFont = NULL;
         mainWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
