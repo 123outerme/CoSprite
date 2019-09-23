@@ -47,9 +47,10 @@ int main(int argc, char* argv[])
     cCamera camera;
     initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0);
     cScene scene;
-    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, (c2DModel*[1]) {&model}, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
+    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, /*(c2DModel*[1]) {&model}*/NULL, 0, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
+    add2DModelToCScene(&scene, &model);
     int key;
-    while(key != -1)
+    while(!(key == -1 || key == SDLK_ESCAPE))
     {
         key = getKey(false);
         if (key == SDLK_w)
@@ -90,6 +91,11 @@ int main(int argc, char* argv[])
                 lowerSprite.drawRect.x += 8;
                 upperSprite.drawRect.x += 8;
             }
+        }
+
+        if (key == SDLK_DELETE)
+        {
+            remove2DModelFromCScene(&scene, &model, -1, false);
         }
 
         if (key == SDLK_UP)

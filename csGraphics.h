@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 10
-    #define COSPRITE_VERSION_PATCH 1
-    #define COSPRITE_VERSION "0.10.1"
+    #define COSPRITE_VERSION_PATCH 2
+    #define COSPRITE_VERSION "0.10.2"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -46,10 +46,8 @@
     #define degToRad(x) (x * PI / 180.0)
 #endif // PI
 #ifndef MAX_PATH
-#define MAX_PATH	(260)
+#define MAX_PATH (260)
 #endif  //MAX_PATH
-
-
 
 //struct definitions:
 typedef struct _coSprite {
@@ -189,6 +187,14 @@ void destroyCResource(cResource* res);
 void initCCamera(cCamera* camera, cDoubleRect rect, double scale, double degrees);
 void destroyCCamera(cCamera* camera);
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* sprites[], int spriteCount, c2DModel* models[], int modelCount, cResource* resources[], int resCount, cText* strings[], int stringCount);
+int addSpriteToCScene(cScene* scenePtr, cSprite* sprite);
+int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool free);
+int add2DModelToCScene(cScene* scenePtr, c2DModel* model);
+int remove2DModelFromCScene(cScene* scenePtr, c2DModel* model, int index, bool free);
+int addTextToCScene(cScene* scenePtr, cText* text);
+int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free);
+int addResourceToCScene(cScene* scenePtr, cResource* resource);
+int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);

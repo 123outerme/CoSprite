@@ -220,6 +220,8 @@ void exportC2DModel(c2DModel* model, char* filepath)
     free(data);
 }
 
+
+//TODO: Sort by priority then draw
 /** \brief draws a c2DModel to the screen
  *
  * \param model - c2DModel you want drawn
@@ -469,6 +471,284 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* s
     scenePtr->stringCount = stringCount;
 }
 
+/** \brief Adds a cSprite to a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param sprite - pointer to a sprite
+ * \return true if succeeded, false if not
+ */
+int addSpriteToCScene(cScene* scenePtr, cSprite* sprite)
+{
+    bool success = true;
+    cSprite** tempSprites;
+    if (scenePtr->modelCount == 0)
+        tempSprites = calloc(scenePtr->spriteCount + 1, sizeof(cSprite*));
+    else
+        tempSprites = realloc(scenePtr->sprites, (scenePtr->spriteCount + 1) * sizeof(cSprite*));
+
+    if (tempSprites != NULL)
+    {
+        free(scenePtr->sprites);
+        scenePtr->sprites = tempSprites;
+        scenePtr->sprites[scenePtr->spriteCount] = sprite;
+        scenePtr->spriteCount++;
+    }
+    else
+    {
+        printf("addSpriteToCScene: Failed to resize sprites array (attempted size %d)", scenePtr->spriteCount + 1);
+        success = false;
+    }
+    return success;
+}
+
+//fix the rest of the add methods
+
+/** \brief Removes a specified sprite, or the sprite in the given index from a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param sprite - pointer to the sprite to match addresses (NULL to use index instead)
+ * \param index - where in the sprite array the sprite is (-1 to make sure it is not used)
+ * \param free - if true, cleans up the referenced sprite from memory
+ * \return true if succeeded, false if not
+ */
+int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool free)
+{
+    bool success = true;
+    if (sprite != NULL)
+    {
+        index = -1;
+        for(int i = 0; i < scenePtr->spriteCount; i++)
+        {
+            if (scenePtr->sprites[i] == sprite)
+                index = i;
+        }
+    }
+    if (free)
+        destroyCSprite(scenePtr->sprites[index]);
+
+    if (index >= 0)
+    {
+        scenePtr->sprites[index] = NULL;
+        for(int i = index; i < scenePtr->spriteCount - 1; i++)
+            scenePtr->sprites[i] = scenePtr->sprites[i + 1];
+
+        scenePtr->spriteCount--;
+    }
+    else
+    {
+        printf("removeSpriteFromCScene: Failed to find sprite\n");
+        success = false;
+    }
+    return success;
+}
+
+/** \brief Adds a c2DModel to a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param model - pointer to a c2DModel
+ * \return true if succeeded, false if not
+ */
+int add2DModelToCScene(cScene* scenePtr, c2DModel* model)
+{
+    bool success = true;
+    c2DModel** tempModels;
+    if (scenePtr->modelCount == 0)
+        tempModels = calloc(scenePtr->modelCount + 1, sizeof(c2DModel*));
+    else
+        tempModels = realloc(scenePtr->models, (scenePtr->modelCount + 1) * sizeof(c2DModel*));
+
+    if (tempModels != NULL)
+    {
+
+        free(scenePtr->models);
+        scenePtr->models = tempModels;
+        scenePtr->models[scenePtr->modelCount] = model;
+        scenePtr->modelCount++;
+    }
+    else
+    {
+        printf("add2DModelToCScene: Failed to resize models array (attempted size %d)", scenePtr->modelCount + 1);
+        success = false;
+    }
+    return success;
+}
+
+/** \brief Removes a specified model, or the model in the given index from a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param model - pointer to the model to match addresses (NULL to use index instead)
+ * \param index - where in the sprite array the sprite is (-1 to make sure it is not used)
+ * \param free - if true, cleans up the referenced model from memory
+ * \return true if succeeded, false if not
+ */
+int remove2DModelFromCScene(cScene* scenePtr, c2DModel* model, int index, bool free)
+{
+    bool success = true;
+    if (model != NULL)
+    {
+        index = -1;
+        for(int i = 0; i < scenePtr->modelCount; i++)
+        {
+            if (scenePtr->models[i] == model)
+                index = i;
+        }
+    }
+    if (free)
+        destroyC2DModel(scenePtr->models[index]);
+
+    if (index >= 0)
+    {
+        scenePtr->models[index] = NULL;
+        for(int i = index; i < scenePtr->modelCount - 1; i++)
+            scenePtr->models[i] = scenePtr->models[i + 1];
+
+        scenePtr->modelCount--;
+    }
+    else
+    {
+        printf("remove2DModelFromCScene: Failed to find model\n");
+        success = false;
+    }
+    return success;
+}
+
+/** \brief Adds a cText to a specified scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param text- pointer to a cText
+ * \return true if succeeded, false if not
+ */
+int addTextToCScene(cScene* scenePtr, cText* text)
+{
+    bool success = true;
+    cText** tempTexts;
+    if (scenePtr->stringCount == 0)
+        tempTexts = calloc(scenePtr->stringCount + 1, sizeof(cText*));
+    else
+        tempTexts = realloc(scenePtr->strings, scenePtr->stringCount * sizeof(cText*));
+
+    if (tempTexts != NULL)
+    {
+        free(scenePtr->strings);
+        scenePtr->strings = tempTexts;
+        scenePtr->strings[scenePtr->modelCount] = text;
+        scenePtr->stringCount++;
+    }
+    else
+    {
+        printf("addTextToCScene: Failed to resize strings array (attempted size %d)", scenePtr->stringCount + 1);
+        success = false;
+    }
+    return success;
+}
+
+/** \brief Removes a text, or the text in a given index from a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param text - pointer to the text to match addresses (NULL to use index instead)
+ * \param index - where in the sprite array the sprite is (-1 to make sure it is not used)
+ * \param free - if true, cleans up the referenced text from memory
+ * \return true if succeeded, false if not
+ */
+int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free)
+{
+    bool success = true;
+    if (text != NULL)
+    {
+        index = -1;
+        for(int i = 0; i < scenePtr->stringCount; i++)
+        {
+            if (scenePtr->strings[i] == text)
+                index = i;
+        }
+    }
+    if (free)
+        destroyCText(scenePtr->strings[index]);
+
+    if (index >= 0)
+    {
+        scenePtr->strings[index] = NULL;
+        for(int i = index; i < scenePtr->stringCount - 1; i++)
+                scenePtr->strings[i] = scenePtr->strings[i + 1];
+
+        scenePtr->stringCount--;
+    }
+    else
+    {
+        printf("removeTextFromCScene: Failed to find text\n");
+        success = false;
+    }
+
+    return success;
+}
+
+/** \brief Adds a cResource to the specified scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param resource - pointer to a cResource
+ * \return true if succeeded, false if not
+ */
+int addResourceToCScene(cScene* scenePtr, cResource* resource)
+{
+    bool success = true;
+    cResource** tempResources;
+    if (scenePtr->resCount == 0)
+        tempResources = calloc(scenePtr->resCount + 1, sizeof(cResource*));
+    else
+        tempResources = realloc(scenePtr->resources, scenePtr->resCount * sizeof(cResource*));
+    if (tempResources != NULL)
+    {
+        free(scenePtr->resources);
+        scenePtr->resources = tempResources;
+        scenePtr->resCount++;
+    }
+    else
+    {
+        printf("addresourceToCScene: Failed to resize resources array (attempted size %d)", scenePtr->resCount--);
+        success = false;
+    }
+    return success;
+}
+
+/** \brief Removes a resource, or the resource in a given index from a scene.
+ *
+ * \param scenePtr - pointer to a cScene
+ * \param resource - pointer to the resource to match addresses (NULL to use index instead)
+ * \param index - where in the sprite array the sprite is (-1 to make sure it is not used)
+ * \param free - if true, cleans up the referenced resource from memory
+ * \return true if succeeded, false if not
+ */
+int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free)
+{
+    bool success = true;
+    if (resource != NULL)
+    {
+        index = -1;
+        for(int i = 0; i < scenePtr->resCount; i++)
+        {
+            if (scenePtr->resources[i] == resource)
+                index = i;
+        }
+    }
+    if (free)
+        destroyCResource(scenePtr->resources[index]);
+
+    if (index >= 0)
+    {
+        scenePtr->resources[index] = NULL;
+        for(int i = index; i < scenePtr->resCount - 1; i++)
+            scenePtr->resources[i] = scenePtr->resources[i + 1];
+
+        scenePtr->resCount--;
+    }
+    else
+    {
+        printf("removeResourceFromCScene: Failed to find resource\n");
+        success = false;
+    }
+    return success;
+}
+
 /** \brief clears out a cScene and all its memory, including sprites.
  *
  * \param scenePtr - pointer to your cScene
@@ -519,13 +799,16 @@ void destroyCScene(cScene* scenePtr)
  * \param redraw - if nonzero, will update the screen
  */
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
-{
+{ //TODO: Speed this up
     SDL_SetRenderDrawColor(global.mainRenderer, scenePtr->bgColor.r, scenePtr->bgColor.g, scenePtr->bgColor.b, scenePtr->bgColor.a);
     if (clearScreen)
         SDL_RenderClear(global.mainRenderer);
+
+    int maxNum = fmax(scenePtr->spriteCount, fmax(scenePtr->modelCount, fmax(scenePtr->resCount, scenePtr->resCount)));
+
     for(int priority = global.renderLayers; priority >= 1; priority--)
     {
-        for(int i = 0; i < scenePtr->spriteCount; i++)
+        /*for(int i = 0; i < scenePtr->spriteCount; i++)
         {
             if (scenePtr->sprites[i]->renderLayer == priority)
                 drawCSprite(*(scenePtr->sprites[i]), *(scenePtr->camera), false, false);
@@ -546,6 +829,20 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
         for(int i = 0; i < scenePtr->stringCount; i++)
         {
             if (scenePtr->strings[i]->renderLayer == priority)
+                drawCText(*(scenePtr->strings[i]), *(scenePtr->camera), false);
+        }*/
+        for(int i = 0; i < maxNum; i++)
+        {
+            if (scenePtr->spriteCount > i && scenePtr->sprites[i]->renderLayer == priority)
+                drawCSprite(*(scenePtr->sprites[i]), *(scenePtr->camera), false, false);
+
+            if (scenePtr->modelCount > i && scenePtr->models[i]->renderLayer == priority)
+                drawC2DModel(*(scenePtr->models[i]), *(scenePtr->camera), false);
+
+            if (scenePtr->resCount > i && scenePtr->resources[i]->renderLayer == priority)
+                drawCResource(scenePtr->resources[i]);
+
+            if (scenePtr->stringCount > i && scenePtr->strings[i]->renderLayer == priority)
                 drawCText(*(scenePtr->strings[i]), *(scenePtr->camera), false);
         }
     }
@@ -572,8 +869,7 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
         int* wh;
         wh = loadTextTexture(input, &txtTexture, maxW, color, true);
         SDL_RenderCopy(global.mainRenderer, txtTexture, &((SDL_Rect){.w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}),
-                                                 &((SDL_Rect){.x =  x, .y = y, .w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}));
-
+                            &((SDL_Rect){.x =  x, .y = y, .w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}));
 
         if (render)
             SDL_RenderPresent(global.mainRenderer);
