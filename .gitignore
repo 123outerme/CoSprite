@@ -13,3 +13,6 @@
 *.exe
 exported.bin
 *.bmp
+*.dll
+*.crt
+*.pem
