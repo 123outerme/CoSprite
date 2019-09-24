@@ -1,6 +1,22 @@
 #include "csGraphics.h"
 #include "csIO.h"
 #include "csUtility.h"
+#include "csCurl.h"
+
+typedef struct _intArray
+{
+    int* arr;
+    int length;
+} intArray;
+
+size_t randIntCallback(char* ptr, size_t size, size_t nmemb, void* userdata);
+void getNewRandInts(intArray* arr);
+int getRandInt();
+
+intArray randomNums;
+int getRandIntPlace = 0;  //please don't modify
+bool hasConnection = true;  //please don't modify
+const int MAX_RAND_NUMS = 15;
 
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void));
@@ -9,6 +25,24 @@ int main(int argc, char* argv[])
 {
     argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("cb.bmp", "CoSprite Test/Example", 960, 480, "Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    initCoSpriteCurl(CURL_GLOBAL_ALL);
+
+    randomNums = (intArray) {calloc(MAX_RAND_NUMS, sizeof(int)), 0};
+    int randInts[3] = {0, 0, 0};
+
+    for(int i = 0; i < 3; i++)
+        randInts[i] = getRandInt();
+
+    char* randString = calloc(10, sizeof(char));
+    snprintf(randString, 9, "%d.%d.%d", randInts[0], randInts[1], randInts[2]);
+
+    char* webString = calloc(5192, sizeof(char));
+    csCurlPerformEasyGet(&globalCurl, "https://123outerme.github.io/Gateway-to-Legend/", webString);
+    //get a string from a website, probably my GtL website
+
+    printf("%s\n", webString);
+    free(webString);
+
     /*bool quit = false;
     SDL_Keycode key;
     char filename[FILENAME_MAX - 1] = " ";
@@ -34,7 +68,7 @@ int main(int argc, char* argv[])
     loadSprite(&lowerSprite, "cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     cText txt;
-    initCText(&txt, COSPRITE_VERSION, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
+    initCText(&txt, randString, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     if (checkFile("exported.bin", 1))
     {
@@ -98,6 +132,15 @@ int main(int argc, char* argv[])
             remove2DModelFromCScene(&scene, &model, -1, false);
         }
 
+        if (key == SDLK_p)
+        {
+            for(int i = 0; i < 3; i++)
+                randInts[i] = getRandInt();
+
+            snprintf(randString, 9, "%d.%d.%d", randInts[0], randInts[1], randInts[2]);
+            updateCText(&txt, randString);
+        }
+
         if (key == SDLK_UP)
             camera.rect.y--;
         if (key == SDLK_DOWN)
@@ -136,9 +179,12 @@ int main(int argc, char* argv[])
             printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
         drawCScene(&scene, true, true);
     }
+    free(randString);
+    free(randomNums.arr);
     exportC2DModel(&model, "exported.bin");
     destroyCScene(&scene);
     closeCoSprite();
+    closeCoSpriteCurl();
     return code;
 }
 
@@ -251,4 +297,78 @@ int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, i
         drawCSprite(cursor, (cCamera) {(cDoubleRect) {0, 0, SCREEN_WIDTH, SCREEN_HEIGHT}, 1.0, 0.0}, true, false);
     }
     return selection;
+}
+
+int getRandInt()
+{
+    if (getRandIntPlace >= randomNums.length)
+    {
+        printf("Need some new values\n");
+        getRandIntPlace = 0;
+        randomNums.length = 0;
+        getNewRandInts(&randomNums);
+    }
+    return randomNums.arr[getRandIntPlace++];
+}
+
+void getNewRandInts(intArray* arr)
+{
+    int min = 0, max = 9;
+    if (globalCurl.handle && globalCurl.online)
+    {
+        //check quota from: "https://www.random.org/quota/?format=plain"
+
+        char* randURL = calloc(256, sizeof(char));
+        snprintf(randURL, 256 * sizeof(char), "https://www.random.org/integers/?num=%d&min=%d&max=%d&col=1&base=10&format=plain&rnd=new", MAX_RAND_NUMS, min, max);
+        printf("Get from:\n%s\n", randURL);
+
+        curl_easy_setopt(globalCurl.handle, CURLOPT_URL, randURL);
+
+        curl_easy_setopt(globalCurl.handle, CURLOPT_WRITEFUNCTION, randIntCallback);
+
+        /* we pass our 'chunk' struct to the callback function */
+        curl_easy_setopt(globalCurl.handle, CURLOPT_WRITEDATA, (void*) arr);
+
+        /* Perform the request, res will get the return code */
+        globalCurl.retCode = curl_easy_perform(globalCurl.handle);
+
+        /*
+        for(int i = 0; i < MAX_RAND_NUMS; i++)
+        {
+            printf("%d ", arr->arr[i]);
+        }
+        printf("\n");
+        //*/
+
+        /* Check for errors */
+        if(globalCurl.retCode != CURLE_OK)
+        {
+            fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(globalCurl.retCode));
+            globalCurl.online = false;
+        }
+
+        free(randURL);
+    }
+
+    if (!globalCurl.online)
+    {
+        for(int i = 0; i < MAX_RAND_NUMS; i++)
+        {
+            arr->arr[i] = min + (rand() % max);
+        }
+        arr->length = MAX_RAND_NUMS;
+    }
+}
+
+size_t randIntCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
+{
+    intArray* randInts = (intArray*) userdata;
+    char* subString = strtok(ptr, "\n");
+    while(subString != NULL)
+    {
+        randInts->arr[randInts->length] = strtol(subString, NULL, 10);
+        randInts->length++;
+        subString = strtok(NULL, "\n");
+    }
+    return size * nmemb;
 }
