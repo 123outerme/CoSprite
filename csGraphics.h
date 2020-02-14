@@ -127,6 +127,7 @@ typedef struct _cText {
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     SDL_Color textColor;
     SDL_Color bgColor;
+    double scale;
     SDL_RendererFlip flip;
     double degrees;
     bool fixed;  /**< if true, won't be affected by camera movement */
@@ -134,13 +135,14 @@ typedef struct _cText {
 
 typedef struct _cCamera {
     cDoubleRect rect;
-    double scale;
+    double zoom;
     double degrees;
 } cCamera;
 
 typedef struct _cResource {
     void* subclass;
     void (*drawingRoutine)(void*);
+    void (*cleanupRoutine)(void*);
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
 } cResource;
 
@@ -177,14 +179,14 @@ void destroyC2DModel(c2DModel* model);
 void importC2DModel(c2DModel* model, char* filepath);
 void exportC2DModel(c2DModel* model, char* filepath);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
 void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
-void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), int drawPriority);
+void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), void (*cleanupRoutine)(void*), int renderLayer);
 void drawCResource(cResource* res);
 void destroyCResource(cResource* res);
-void initCCamera(cCamera* camera, cDoubleRect rect, double scale, double degrees);
+void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees);
 void destroyCCamera(cCamera* camera);
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* sprites[], int spriteCount, c2DModel* models[], int modelCount, cResource* resources[], int resCount, cText* strings[], int stringCount);
 int addSpriteToCScene(cScene* scenePtr, cSprite* sprite);

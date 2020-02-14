@@ -1,7 +1,8 @@
 #include "csGraphics.h"
-#include "csIO.h"
+#include "csInput.h"
 #include "csUtility.h"
 #include "csCurl.h"
+#include "csMap.h"
 
 typedef struct _intArray
 {
@@ -15,7 +16,6 @@ int getRandInt();
 
 intArray randomNums;
 int getRandIntPlace = 0;  //please don't modify
-bool hasConnection = true;  //please don't modify
 const int MAX_RAND_NUMS = 15;
 
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
@@ -37,10 +37,16 @@ int main(int argc, char* argv[])
     snprintf(randString, 9, "%d.%d.%d", randInts[0], randInts[1], randInts[2]);
 
     char* webString = calloc(5192, sizeof(char));
-    csCurlPerformEasyGet(&globalCurl, "https://123outerme.github.io/Gateway-to-Legend/", webString);
+    csCurlPerformEasyGet(&globalCurl, "https://gtlmappacks.firebaseio.com/files/mappacks/MainAdventureAprilFools.json", webString);
     //get a string from a website, probably my GtL website
 
     printf("%s\n", webString);
+
+    csMap mappackMap;
+    jsonToCSMap(&mappackMap, webString);
+
+    printf("\n\n%s\n", CSMapToJson(mappackMap));
+
     free(webString);
 
     /*bool quit = false;
@@ -68,7 +74,7 @@ int main(int argc, char* argv[])
     loadSprite(&lowerSprite, "cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     cText txt;
-    initCText(&txt, randString, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, SDL_FLIP_NONE, 0, false, 1);
+    initCText(&txt, randString, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, 1.0, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     if (checkFile("exported.bin", 1))
     {
@@ -157,8 +163,12 @@ int main(int argc, char* argv[])
 
         if (key == SDLK_z)
             model.degrees -= 10;
-        if (key == SDLK_c)
+        if (key == SDLK_x)
             model.degrees += 10;
+        if (key == SDLK_c)
+            camera.zoom -= .1;
+        if (key == SDLK_v)
+            camera.zoom += .1;
 
         if (key == SDLK_MINUS)
         {

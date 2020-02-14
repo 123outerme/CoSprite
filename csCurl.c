@@ -2,7 +2,7 @@
 
 /** \brief Initializes curl globally, and opens a handle in the globalCurl object.
  *
- * \param flags -
+ * \param flags - curl_global_init flags (typically CURL_GLOBAL_ALL)
  */
 void initCoSpriteCurl(long flags)
 {
@@ -90,6 +90,13 @@ void csCurlPerformEasyPost(csCurl* handle, char* url, char* data)
     }
 }
 
+/** \brief Internal usage only; callback for csCurlPerformEasyGet()
+ * \param ptr - data gotten
+ * \param size - size of type returned
+ * \param nmemb - number of members
+ * \param userdata - any data you want to access
+ * \return size_t - if not returning size * nmemb, then an error must have occured
+ */
 size_t performEasyGetCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
 {
     char* outputString = (char*) userdata;
@@ -97,11 +104,19 @@ size_t performEasyGetCallback(char* ptr, size_t size, size_t nmemb, void* userda
     return size * nmemb;
 }
 
+/** \brief Clean up a csCurl struct
+ *
+ * \param handle - handle to curl struct you want cleaned up
+ */
 void destroyCSCurl(csCurl* handle)
 {
     curl_easy_cleanup(handle->handle);
     handle->handle = NULL;
+    handle->online = false;
 }
+
+/** \brief Closes CoSprite's Curl extension
+ */
 
 void closeCoSpriteCurl()
 {

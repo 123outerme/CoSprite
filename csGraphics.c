@@ -66,16 +66,18 @@ void destroyCSprite(cSprite* sprite)
  */
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride)
 {
-    double scale = sprite.scale * (sprite.fixed ? 1.0 : camera.scale);
+    double scale = sprite.scale * (sprite.fixed ? 1.0 : camera.zoom);
     cDoublePt point = (cDoublePt) {sprite.drawRect.x * scale, sprite.drawRect.y * scale};
     point = rotatePoint(point, (cDoublePt) {sprite.drawRect.x + sprite.center.x * scale, sprite.drawRect.y + sprite.center.y * scale}, sprite.degrees);
     if (!(sprite.fixed | fixedOverride))
     {
         point = rotatePoint(point, (cDoublePt) {global.windowW / 2, global.windowH / 2}, camera.degrees);
-        point.x -= camera.rect.x * global.windowW / camera.rect.w;
-        point.y -= camera.rect.y * global.windowH / camera.rect.h;
+        point.x -= (camera.rect.x * global.windowW / camera.rect.w);
+        point.y -= (camera.rect.y * global.windowH / camera.rect.h);
     }
-    SDL_RenderCopyEx(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}), &((SDL_Rect) {.x = point.x, .y = point.y, .w = sprite.drawRect.w * sprite.scale * (sprite.fixed ? 1.0 : camera.scale), .h = sprite.drawRect.h * sprite.scale * (sprite.fixed ? 1.0 : camera.scale)}), sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
+    SDL_RenderCopyEx(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}),
+                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom), .h = sprite.drawRect.h * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom)}),
+                     sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
 }
@@ -237,7 +239,7 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
             if (model.sprites[i].renderLayer == priority)
             {
                 {
-                    double scale = model.scale * model.sprites[i].scale * (model.fixed | model.sprites[i].fixed ? 1.0 : camera.scale);
+                    double scale = model.scale * model.sprites[i].scale * (model.fixed | model.sprites[i].fixed ? 1.0 : camera.zoom);
                     cDoublePt point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
 
                     point = rotatePoint(
@@ -252,7 +254,10 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                         point.y -= camera.rect.y * global.windowH / camera.rect.h;
                     }
 
-                    SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}), &((SDL_Rect) {.x = point.x, .y = point.y, .w = model.sprites[i].drawRect.w * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.scale), .h = model.sprites[i].drawRect.h * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.scale)}), model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees), &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
+                    SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
+                                     &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = model.sprites[i].drawRect.w * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom), .h = model.sprites[i].drawRect.h * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom)}),
+                                     model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
+                                     &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
                     if (update)
                         SDL_RenderPresent(global.mainRenderer);
                 }
@@ -279,7 +284,7 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  * \param fixed - if true, won't be affected by a scene's camera
  * \param renderLayer - 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later
  */
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
 {
     text->str = calloc(strlen(str), sizeof(char));
     if (text->str)
@@ -287,6 +292,7 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
     text->rect = rect;
     text->textColor = textColor;
     text->bgColor = bgColor;
+    text->scale = scale;
     text->flip = flip;
     text->degrees = degrees;
     text->fixed = fixed;
@@ -326,6 +332,7 @@ void destroyCText(cText* text)
     text->rect = (cDoubleRect) {0, 0, 0, 0};
     text->textColor = (SDL_Color) {0, 0, 0, 0};
     text->bgColor = (SDL_Color) {0, 0, 0, 0};
+    text->scale = 1.0;
     text->fixed = false;
     text->renderLayer = 0;
     SDL_DestroyTexture(text->texture);
@@ -351,7 +358,7 @@ void drawCText(cText text, cCamera camera, bool update)
         text.rect.y = point.y - (camera.rect.y * global.windowH / camera.rect.h);
     }
 
-    SDL_RenderCopyEx(global.mainRenderer, text.texture, NULL, &((SDL_Rect) {text.rect.x, text.rect.y, text.rect.w, text.rect.h}), text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
+    SDL_RenderCopyEx(global.mainRenderer, text.texture, NULL, &((SDL_Rect) {text.rect.x, text.rect.y, text.rect.w * text.scale, text.rect.h * text.scale}), text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
     SDL_SetRenderDrawColor(global.mainRenderer, r, g, b, a);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
@@ -362,11 +369,14 @@ void drawCText(cText text, cCamera camera, bool update)
  * \param res - cResource pointer
  * \param subclass - struct containing your data
  * \param drawingMethod - function pointer to your drawing method. Must have only one argument, which is your subclass
+ * \param drawingMethod - function pointer to your cleanup method. Must have only one argument, which is your subclass
+ * \param renderLayer -
  */
-void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), int renderLayer)
+void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), void (*cleanupRoutine)(void*), int renderLayer)
 {
     res->subclass = subclass;
     res->drawingRoutine = drawingRoutine;
+    res->cleanupRoutine = cleanupRoutine;
     res->renderLayer = renderLayer;
 }
 
@@ -385,8 +395,10 @@ void drawCResource(cResource* res)
  */
 void destroyCResource(cResource* res)
 {
+    res->cleanupRoutine(res->subclass);
     res->subclass = NULL;
     res->drawingRoutine = NULL;
+    res->cleanupRoutine = NULL;
     res->renderLayer = 0;
 }
 
@@ -396,10 +408,10 @@ void destroyCResource(cResource* res)
  * \param rect - the bounding rect of the camera
  * \param degrees - angle of rotation in degrees
  */
-void initCCamera(cCamera* camera, cDoubleRect rect, double scale, double degrees)
+void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees)
 {
     camera->rect = rect;
-    camera->scale = scale;
+    camera->zoom = zoom;
     camera->degrees = degrees;
 }
 
@@ -410,7 +422,7 @@ void initCCamera(cCamera* camera, cDoubleRect rect, double scale, double degrees
 void destroyCCamera(cCamera* camera)
 {
     camera->rect = (cDoubleRect) {0, 0, 0, 0};
-    camera->scale = 1.0;
+    camera->zoom = 1.0;
     camera->degrees = 0.0;
 }
 

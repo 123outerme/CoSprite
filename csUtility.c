@@ -21,7 +21,6 @@ int digits(int num)
  * Use: x = freeThisMem(x);
  * \param x - memory address
  * \return NULL
- *
  */
 void* freeThisMem(void* x)
 {
