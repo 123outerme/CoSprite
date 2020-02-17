@@ -24,12 +24,13 @@ typedef struct _csMap
     char** values;
     int entries;
     struct _csMap** subMaps;
-    bool* isSubMap;
+    int* entryType;  /**< 0 - value, 1 - subMap, 2 - array */
 } csMap;
 
-void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* subMaps[], bool* isSubMap[]);
+void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* subMaps[], int* entryType[]);
 void jsonToCSMap(csMap* map, char* json);
-char* CSMapToJson(csMap map);
+char* csMapToJson(csMap map);
+char* csMapToArray(csMap map);
 void stringToCSMap(csMap* map, char* str);
 char* traverseCSMapByKey(csMap map, char* key);
 csMap* traverseCSMapByKeyGetMap(csMap map, char* key);

@@ -7,13 +7,13 @@
  * \param values - the list of strings containing the corresponding values
  * \param subMap - a sub-map
  */
-void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* subMaps[], bool* isSubMap[])
+void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* subMaps[], int* entryType[])
 {
     map->entries = numEntries;
     map->keys = calloc(numEntries, sizeof(char*));
     map->values = calloc(numEntries, sizeof(char*));
     map->subMaps = calloc(numEntries, sizeof(csMap*));
-    map->isSubMap = calloc(numEntries, sizeof(bool));
+    map->entryType = calloc(numEntries, sizeof(int));
     for(int i = 0; i < numEntries; i++)
     {
         int keysSize = strlen(keys[i]) + 1;
@@ -24,10 +24,10 @@ void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* 
         map->values[i] = calloc(valuesSize, sizeof(char));
         strncpy(map->values[i], values[i], valuesSize);
 
-        if (isSubMap != NULL)
-            map->isSubMap[i] = (*isSubMap)[i];
+        if (entryType != NULL)
+            map->entryType[i] = (*entryType)[i];
         else
-            map->isSubMap[i] = false;
+            map->entryType[i] = 0;
 
         if (subMaps != NULL)
             map->subMaps[i] = subMaps[i];
@@ -48,6 +48,14 @@ int getJsonElements(char* json)
     int elements = 0;
     bool inDouble = false;
     bool inSingle = false;
+    bool isArray = false;
+
+    if (json[0] == '[')
+    {
+        isArray = true;
+        elements++; //elements = 1 + amount of commas
+    }
+
     for(int i = 0; i < length; i++)
     {  //iterate, looking for colons only inside the first set of {}s, and count how many items we have
         if ((json[i] == '{' || json[i] == '[') && !(inDouble || inSingle))  //if there is a { or [ not inside quotes
@@ -59,7 +67,7 @@ int getJsonElements(char* json)
         if (json[i] == '\'' && !inDouble)  //if we are starting/ending a single-quoted block not inside double quotes
             inSingle = !inSingle;
 
-        if (json[i] == ':' && objLevel == 1 && !(inDouble || inSingle))  //if there is a colon not in quotes and this is the "root" JSON object level
+        if (objLevel == 1 && !(inDouble || inSingle) && (json[i] == ':' || (isArray && json[i] == ',')))  //if there is a colon (or comma if it is an array) and it isn't in quotes and this is the "root" JSON object level
             elements++;
     }
     return elements;
@@ -83,7 +91,7 @@ void jsonToCSMap(csMap* map, char* json)
     map->keys = calloc(elements, sizeof(char*));
     map->values = calloc(elements, sizeof(char*));
     map->subMaps = calloc(elements, sizeof(csMap*));
-    map->isSubMap = calloc(elements, sizeof(bool));
+    map->entryType = calloc(elements, sizeof(int));
 
     //char* jsonCopy = calloc(length + 1, sizeof(char));
     //strncpy(jsonCopy, json, length + 1);
@@ -108,7 +116,7 @@ void jsonToCSMap(csMap* map, char* json)
             if (!(inDouble && json[i - 1] == '\\'))
             {  //ignore an escaped quote
                     inDouble = !inDouble;
-                if (inDouble)
+                if (inDouble)  //if we now decide we are in quotes
                     startOfValue = i + 1;
                 else
                 {
@@ -122,7 +130,7 @@ void jsonToCSMap(csMap* map, char* json)
             if (!(inSingle && json[i - 1] == '\\'))
             {  //ignore an escaped quote
                     inSingle = !inSingle;
-                if (inSingle)
+                if (inSingle)  //if we now decide we are in quotes
                     startOfValue = i + 1;
                 else
                 {
@@ -135,35 +143,40 @@ void jsonToCSMap(csMap* map, char* json)
         {  //we are out of quotes
             if (json[i] == '{' || json[i] == '[')  //if there is a { or [ not inside quotes
             {   //we have found a sub-map
+                //TODO: This can be optimized to only go from current position to end of string
                 objLevel++;
                 if (objLevel == 2)
                 {  //only handle the next level; any subsequent levels will be handles by the recursive call
+                    bool subObjIsArray = false;
+                    if (json[i] == '[')
+                        subObjIsArray = true;
+
                     subObjCount++;
                     bool subInDouble = false;
                     bool subInSingle = false;
                     //printf("%c%c\n", openSubMap, closeSubMap);
                     int subObj = 0;
                     int startPos = 0, endPos = length, openBrackets = 0;
-                    for(int i = 0; i < length; i++)
+                    for(int x = 0; x < length; x++)
                     {  //find where this sub-map is and get the substring without messing up strtok_r()
-                        if (json[i] == '\"' && !subInSingle)  //if we are starting/ending a double-quoted block not inside single quotes
+                        if (json[x] == '\"' && !subInSingle)  //if we are starting/ending a double-quoted block not inside single quotes
                             subInDouble = !subInDouble;
-                        if (json[i] == '\'' && !subInDouble)  //if we are starting/ending a single-quoted block not inside double quotes
+                        if (json[x] == '\'' && !subInDouble)  //if we are starting/ending a single-quoted block not inside double quotes
                             subInSingle = !subInSingle;
 
-                        if ((json[i] == '{' || json[i] == '[') && !(subInDouble || subInSingle))
+                        if ((json[x] == '{' || json[x] == '[') && !(subInDouble || subInSingle))
                         {
                             if (++openBrackets == objLevel)
-                                startPos = i;
+                                startPos = x;
                         }
-                        if ((json[i] == '}' || json[i] == ']') && !(subInDouble || subInSingle))
+                        if ((json[x] == '}' || json[x] == ']') && !(subInDouble || subInSingle))
                         {
                             if (openBrackets-- == objLevel)
                             {
                                 subObj++;
                                 if (subObj == subObjCount)
                                 {
-                                    endPos = i + 1;
+                                    endPos = x + 1;
                                     break;
                                 }
                             }
@@ -175,10 +188,10 @@ void jsonToCSMap(csMap* map, char* json)
                         printf("-> %s goes into subMaps[%d]\n", subJson, pos);
                     csMap* tempMap = malloc(sizeof(csMap));
                     jsonToCSMap(tempMap, subJson);  //init new map and fill in values
-                    map->isSubMap[pos] = true;
+                    map->entryType[pos] = (subObjIsArray) ? 2 : 1;
                     map->subMaps[pos] = tempMap;
                     if (debug)
-                        printf("<- submap into pos %d: Comes out into objLevel %d\n", pos, objLevel);
+                        printf("<- submap type %d into pos %d: Comes out into objLevel %d\n", map->entryType[pos], pos, objLevel);
                     pos++;  //signifies we have completed the entry
                     free(subJson);
                 }
@@ -239,7 +252,6 @@ void jsonToCSMap(csMap* map, char* json)
                         }
                         else
                         {
-                            //*
                             //we are not in quotes, not ready to write, not in a sub-map, not currently deciding if we are in a key or value
                             if (json[i] != '\"' && json[i] != '\'' && objLevel == 1)
                             {  //if we are not reading in a literal quote
@@ -252,6 +264,8 @@ void jsonToCSMap(csMap* map, char* json)
                                         {
                                             startOfValue = i;
                                             outsideQuoteValue = true;
+                                            if (debug)
+                                                printf("start %d. isArray = %d\n", startOfValue, isArray);
                                         }
 
                                 }
@@ -259,10 +273,16 @@ void jsonToCSMap(csMap* map, char* json)
                                 {
                                     if (isArray)
                                     {
-                                        int numLen = 1 + (int) log10(pos);
+                                        int numLen = 1;
+                                        if (pos != 0)
+                                            numLen += (int) log10(pos);
+
+                                        if (debug)
+                                            printf("pos = %d, numLen = %d\n", pos, numLen);
+
                                         map->keys[pos] = calloc(numLen + 1, sizeof(char));
                                         snprintf(map->keys[pos], numLen + 1, "%d", pos);
-                                        //if (debug)
+                                        if (debug)
                                             printf("key = %s\n", map->keys[pos]);
                                     }
                                     int valueLength = i - startOfValue;
@@ -275,7 +295,8 @@ void jsonToCSMap(csMap* map, char* json)
 
                                     startOfValue = 0;
                                     outsideQuoteValue = false;  //signifies we have completed the substring
-                                    isKey = true;  //set the isKey flag because we skip setting it earlier
+                                    if (!isArray)  //arrays have pre-defined keys
+                                        isKey = true;  //set the isKey flag because we skip setting it earlier
                                 }
                                 else
                                 {
@@ -283,7 +304,6 @@ void jsonToCSMap(csMap* map, char* json)
                                         printf(">>>char %c, start %d, pos %d, elements %d\n", json[i], startOfValue, pos, elements);
                                 }
                             }
-                            //*/
                         }
                     }
                 }
@@ -403,11 +423,11 @@ void jsonToCSMap(csMap* map, char* json)
  * \param map - the map you want to convert
  * \return char* - the JSON data in string format
 */
-char* CSMapToJson(csMap map)
+char* csMapToJson(csMap map)
 {
     if (map.entries == 0 || map.keys == NULL)
         return "{}";
-    size_t size = 8192;
+    size_t size = 8192;  //TODO: Maybe calculate size of JSON string if it's not too hard
     char* jsonString = calloc(size, sizeof(char));
     strncpy(jsonString, "{", size);
     for(int i = 0; i < map.entries; i++)
@@ -415,17 +435,22 @@ char* CSMapToJson(csMap map)
         strncat(jsonString, "\'", size);
         strncat(jsonString, map.keys[i], size);
         strncat(jsonString, "\':", size);
-        if (map.isSubMap[i])
+        if (map.entryType[i] != 0)
         {
-            char* tempData;
             if (map.subMaps[i] != NULL)
             {
-                tempData = CSMapToJson(*(map.subMaps[i]));
+                char* tempData;
+
+                if (map.entryType[i] == 1)  //if entry type is a JSON obj
+                    tempData = csMapToJson(*(map.subMaps[i]));
+                else  //entry type is an array
+                    tempData = csMapToArray(*(map.subMaps[i]));
+
                 strncat(jsonString, tempData, size);
                 free(tempData);
             }
             else
-                strncat(jsonString, "{}", size);
+                strncat(jsonString, (map.entryType[i] == 1) ? "{}" : "[]", size);
         }
         else
         {
@@ -452,6 +477,43 @@ char* CSMapToJson(csMap map)
     return jsonString;
 }
 
+char* csMapToArray(csMap map)
+{
+    if (map.entries == 0 || map.keys == NULL)
+        return "[]";
+    size_t size = 8192;  //TODO: Maybe calculate size of array string if it's not too hard
+    char* arrString = calloc(size, sizeof(char));
+    strncpy(arrString, "[", size);
+    for(int i = 0; i < map.entries; i++)
+    {
+        if (map.entryType[i] != 0)
+        {
+            //print a sub-obj or array
+            if (map.subMaps[i] != NULL)
+            {
+                char* tempData;
+
+                if (map.entryType[i] == 1)  //if entry type is a JSON obj
+                    tempData = csMapToJson(*(map.subMaps[i]));
+                else  //entry type is an array
+                    tempData = csMapToArray(*(map.subMaps[i]));
+
+                strncat(arrString, tempData, size);
+                free(tempData);
+            }
+            else
+                strncat(arrString, (map.entryType[i] == 1) ? "{}" : "[]", size);
+        }
+        else
+            strncat(arrString, map.values[i], size);
+
+        if (i < map.entries - 1)
+            strncat(arrString, ",", size);
+    }
+    strncat(arrString, "]", size);
+    return arrString;
+}
+
 /** \brief Creates a csMap using a single string in the format ("key"->str)
  * \param map - the map you want to initialize and fill in
  * \param str - the string data you want inserted
@@ -460,8 +522,9 @@ void stringToCSMap(csMap* map, char* str)
 {
     map->entries = 1;
     map->subMaps = NULL;
-    bool no = false;
-    map->isSubMap = &no;
+    int* entryIsValue = malloc(sizeof(int));
+    *entryIsValue = 0;
+    map->entryType = entryIsValue;
     map->keys = calloc(1, sizeof(char*));
     map->values = calloc(1, sizeof(char*));
     map->keys[0] = "key";
@@ -479,10 +542,13 @@ char* traverseCSMapByKey(csMap map, char* key)
     {
         if (strcmp(map.keys[i], key) == 0)
         {
-            if (map.isSubMap[i])
-                return CSMapToJson(*(map.subMaps[i]));
-            else
-                return map.values[i];
+            if (map.entryType[i] == 1)
+                return csMapToJson(*(map.subMaps[i]));
+
+            if (map.entryType[i] == 2)
+                return csMapToArray(*(map.subMaps[i]));
+
+            return map.values[i];
         }
 
     }
@@ -502,7 +568,7 @@ csMap* traverseCSMapByKeyGetMap(csMap map, char* key)
     {
         if (strcmp(map.keys[i], key) == 0)
         {
-            if (!(map.isSubMap[i]))
+            if (map.entryType[i] == 0)
                 stringToCSMap(map.subMaps[i], map.values[i]);
 
             return map.subMaps[i];
@@ -528,7 +594,7 @@ void destroyCSMap(csMap* map)
             map->values[i] = NULL;
 
             destroyCSMap(map->subMaps[i]);
-            map->isSubMap[i] = false;
+            map->entryType[i] = false;
         }
         free(map->keys);
         map->keys = NULL;
@@ -539,8 +605,8 @@ void destroyCSMap(csMap* map)
         free(map->subMaps);
         map->subMaps = NULL;
 
-        free(map->isSubMap);
-        map->isSubMap = NULL;
+        free(map->entryType);
+        map->entryType = NULL;
 
         map->entries = 0;
     }
