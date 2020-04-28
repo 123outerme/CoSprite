@@ -1121,9 +1121,14 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
             else
             {
                 global.colorKey = transparentColor;
-                SDL_Surface* iconSurface = IMG_Load(iconPath);
-                SDL_SetWindowIcon(mainWindow, iconSurface);
-                SDL_FreeSurface(iconSurface);
+
+                if (iconPath != NULL)
+                {
+                    SDL_Surface* iconSurface = IMG_Load(iconPath);
+                    SDL_SetWindowIcon(mainWindow, iconSurface);
+                    SDL_FreeSurface(iconSurface);
+                }
+
                 SDL_SetRenderDrawBlendMode(global.mainRenderer, SDL_BLENDMODE_BLEND);
                 SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderSetLogicalSize(global.mainRenderer, windowWidth, windowHeight);
@@ -1339,10 +1344,9 @@ int createFile(char* filePath)
 /** \brief Checks if a file exists and if it has certain number of lines.
  *
  * \param filePath - valid string filepath (relative or absolute)
- * \param desiredLines - Compares this number to actual lines. If desiredLines < 0, gets number of lines instead.
- * \return 1 if desiredLines >= 0 and desiredLines >= lines. 0 otherwise. If desiredLines < 0, returns number of lines instead.
+ * \return int - returns number of lines.
  */
-int checkFile(char* filePath, int desiredLines)
+int checkFile(char* filePath)
 {
     FILE* filePtr = fopen(filePath, "r");
 	if (!filePtr)
@@ -1358,7 +1362,7 @@ int checkFile(char* filePath, int desiredLines)
       }
     }
     fclose(filePtr);
-    return desiredLines >= 0 ? lines >= desiredLines : lines;
+    return lines;
 }
 
 /** \brief Adds a line of text to the end of a file
@@ -1394,7 +1398,7 @@ int appendLine(char* filePath, char* stuff, bool addNewline)
  */
 int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool addNewline)
 {
-    int maxLines = checkFile(filePath, -1) + 1;
+    int maxLines = checkFile(filePath) + 1;
     //printf("%d\n", maxLines);
     if (lineNum < 0 || lineNum > maxLines)
         return -1;

@@ -37,17 +37,24 @@ int main(int argc, char* argv[])
     snprintf(randString, 9, "%d.%d.%d", randInts[0], randInts[1], randInts[2]);
 
     char* webString = calloc(5192, sizeof(char));
-    csCurlPerformEasyGet(&globalCurl, "https://gtlmappacks.firebaseio.com/files/mappacks/MainAdventureAprilFools.json", webString);
+
+    int start = SDL_GetTicks();
+    csCurlPerformEasyGet(&globalCurl, "https://gtlmappacks.firebaseio.com/files/mappacks/MainAdventure.json", webString);
+    int time = SDL_GetTicks();
+    printf("%d elapsed ms\n", time - start);
     //get a string from a website, probably my GtL website
 
-    printf("%s\n", webString);
+    printf("\n%s\n", webString);
 
     csMap mappackMap;
     jsonToCSMap(&mappackMap, webString);
 
-    printf("\n\n%s\n", CSMapToJson(mappackMap));
+    printf("\n%s\n", csMapToJson(mappackMap));
+
+    printf("\n%s\n", traverseCSMapByKey(mappackMap, "likes"));
 
     free(webString);
+    destroyCSMap(&mappackMap);
 
     /*bool quit = false;
     SDL_Keycode key;
@@ -76,7 +83,7 @@ int main(int argc, char* argv[])
     cText txt;
     initCText(&txt, randString, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, 1.0, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
-    if (checkFile("exported.bin", 1))
+    if (checkFile("exported.bin") > 0)
     {
         importC2DModel(&model, "exported.bin");
     }

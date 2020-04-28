@@ -207,7 +207,7 @@ cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, int degrees);
 
 //file I/O
 int createFile(char* filePath);
-int checkFile(char* filePath, int desiredLines);
+int checkFile(char* filePath);
 int appendLine(char* filePath, char* stuff, bool addNewline);
 int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool addNewline);
 char* readLine(char* filePath, int lineNum, int maxLength, char** output);

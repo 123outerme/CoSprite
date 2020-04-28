@@ -13,7 +13,10 @@ int randInt(int low, int high, bool inclusive)
 int digits(int num)
 {
     if (num < 0)
+    {
         num *= -1;
+    }
+
 	return 1 + log10(num);
 }
 

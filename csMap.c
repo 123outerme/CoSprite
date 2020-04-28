@@ -79,7 +79,6 @@ int getJsonElements(char* json)
 */
 void jsonToCSMap(csMap* map, char* json)
 {  //handle chunks without using strtok, bc of single-quotes in double quote blocks or vice versa
-    //TODO: Arrays not saved properly (as arrays instead of objects)
     const bool debug = false;
     int length = strlen(json);
     int elements = getJsonElements(json);
@@ -105,7 +104,8 @@ void jsonToCSMap(csMap* map, char* json)
     {
         isKey = false;
         isArray = true;
-        printf("found array\n");
+        if (debug)
+            printf("found array\n");
     }
 
     for(int i = 0; i < length; i++)
@@ -555,8 +555,6 @@ char* traverseCSMapByKey(csMap map, char* key)
     return NULL;
 }
 
-//TODO: Make modification functions
-
 /** \brief Find a map's entry given that value's key, and return the value as a csMap
  * \param map - the map you wish to search
  * \param key - the key you wish to find the value for
@@ -577,6 +575,8 @@ csMap* traverseCSMapByKeyGetMap(csMap map, char* key)
     }
     return NULL;
 }
+
+//TODO: Make modification functions
 
 /** \brief Destroys a csMap and frees all its memory (including sub-maps)
  * \param map - the map you wish to destroy
