@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     int key;
     while(!(key == -1 || key == SDLK_ESCAPE))
     {
-        key = getKey(false);
+        key = getKey(false).key.keysym.sym;
         if (key == SDLK_w)
         {
             model.rect.y -= 8;

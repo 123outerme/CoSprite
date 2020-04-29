@@ -5,23 +5,34 @@
  * \param useMouse - whether or not to count a click as a key
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
  */
-SDL_Keycode getKey(bool useMouse)
+cInputState getKey(bool useMouse)
 {
     SDL_Event e;
-    SDL_Keycode keycode = 0;
+
+    cInputState state;
+    state.click = (SDL_MouseButtonEvent) {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    state.isClick = false;
+    state.quitInput = false;
+
     while(SDL_PollEvent(&e) != 0)
     {
+        state.key = e.key; //saved out here so no matter what state.key will be populated
+
         if(e.type == SDL_QUIT)
-            keycode = -1;
+            state.quitInput = true;
         else
         {
-            if(e.type == SDL_KEYDOWN)
-                keycode = e.key.keysym.sym;
+            //if(e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
+                //state.key = e.key;
+
             if (e.type == SDL_MOUSEBUTTONDOWN && useMouse)
-                keycode = 1;
+            {
+                state.isClick = true;
+                state.click = e.button;
+            }
         }
     }
-    return keycode;
+    return state;
 }
 
 /** \brief Just like getKey(), except it waits
@@ -29,33 +40,43 @@ SDL_Keycode getKey(bool useMouse)
  * \param useMouse - whether or not to count a click as a key
  * \return key you pressed as an SDL_Keycode, or -1 if a quit signal was sent
  */
-SDL_Keycode waitForKey(bool useMouse)
+cInputState waitForKey(bool useMouse)
 {
     SDL_Event e;
     bool quit = false;
-    SDL_Keycode keycode = SDLK_ESCAPE;
+
+    cInputState state;
+    state.click = (SDL_MouseButtonEvent) {0, 0, 0, 0, 0, 0, 0, 0, 0};
+    state.isClick = false;
+    state.quitInput = false;
+
     while(!quit)
     {
         while(SDL_PollEvent(&e) != 0)
         {
             if(e.type == SDL_QUIT)
+            {
+                state.quitInput = true;
                 quit = true;
+            }
             else
             {
                 if(e.type == SDL_KEYDOWN)
                 {
-                    keycode = e.key.keysym.sym;
+                    state.key = e.key;
                     quit = true;
                 }
                 if (e.type == SDL_MOUSEBUTTONDOWN && useMouse)
                 {
-                    keycode = 1;
+                    state.isClick = true;
+                    state.key = e.key;  //only done in case user tries to access keystate afterwards
+                    state.click = e.button;
                     quit = true;
                 }
             }
         }
     }
-    return keycode;
+    return state;
 }
 
 /** \brief tries to map a key

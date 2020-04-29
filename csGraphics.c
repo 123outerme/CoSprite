@@ -395,7 +395,9 @@ void drawCResource(cResource* res)
  */
 void destroyCResource(cResource* res)
 {
-    res->cleanupRoutine(res->subclass);
+    if (res->cleanupRoutine != NULL)
+        res->cleanupRoutine(res->subclass);
+
     res->subclass = NULL;
     res->drawingRoutine = NULL;
     res->cleanupRoutine = NULL;
