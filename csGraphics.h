@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 10
-    #define COSPRITE_VERSION_PATCH 4
-    #define COSPRITE_VERSION "0.10.4"
+    #define COSPRITE_VERSION_PATCH 5
+    #define COSPRITE_VERSION "0.10.5"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -141,7 +141,7 @@ typedef struct _cCamera {
 
 typedef struct _cResource {
     void* subclass;
-    void (*drawingRoutine)(void*);
+    void (*drawingRoutine)(void*, cCamera);
     void (*cleanupRoutine)(void*);
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
 } cResource;
@@ -183,8 +183,8 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
 void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
-void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), void (*cleanupRoutine)(void*), int renderLayer);
-void drawCResource(cResource* res);
+void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*, cCamera), void (*cleanupRoutine)(void*), int renderLayer);
+void drawCResource(cResource* res, cCamera camera);
 void destroyCResource(cResource* res);
 void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees);
 void destroyCCamera(cCamera* camera);

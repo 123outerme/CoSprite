@@ -372,7 +372,7 @@ void drawCText(cText text, cCamera camera, bool update)
  * \param drawingMethod - function pointer to your cleanup method. Must have only one argument, which is your subclass
  * \param renderLayer -
  */
-void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*), void (*cleanupRoutine)(void*), int renderLayer)
+void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*, cCamera), void (*cleanupRoutine)(void*), int renderLayer)
 {
     res->subclass = subclass;
     res->drawingRoutine = drawingRoutine;
@@ -384,9 +384,9 @@ void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*)
  *
  * \param res - pointer to your cResource
  */
-void drawCResource(cResource* res)
+void drawCResource(cResource* res, cCamera camera)
 {
-    (*res->drawingRoutine)(res->subclass);
+    (*res->drawingRoutine)(res->subclass, camera);
 }
 
 /** \brief clears out a cResource and its memory
@@ -818,7 +818,7 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
     if (clearScreen)
         SDL_RenderClear(global.mainRenderer);
 
-    int maxNum = fmax(scenePtr->spriteCount, fmax(scenePtr->modelCount, fmax(scenePtr->resCount, scenePtr->resCount)));
+    int maxNum = fmax(scenePtr->spriteCount, fmax(scenePtr->modelCount, fmax(scenePtr->resCount, scenePtr->stringCount)));
 
     for(int priority = global.renderLayers; priority >= 1; priority--)
     {
@@ -854,7 +854,7 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
                 drawC2DModel(*(scenePtr->models[i]), *(scenePtr->camera), false);
 
             if (scenePtr->resCount > i && scenePtr->resources[i]->renderLayer == priority)
-                drawCResource(scenePtr->resources[i]);
+                drawCResource(scenePtr->resources[i], *(scenePtr->camera));
 
             if (scenePtr->stringCount > i && scenePtr->strings[i]->renderLayer == priority)
                 drawCText(*(scenePtr->strings[i]), *(scenePtr->camera), false);
