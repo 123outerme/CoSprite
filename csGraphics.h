@@ -203,7 +203,7 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);
 
-cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, int degrees);
+cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees);
 
 //file I/O
 int createFile(char* filePath);

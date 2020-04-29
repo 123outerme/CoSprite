@@ -933,7 +933,7 @@ cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using t
 
     double normals[8] = {sprite1.degrees, sprite1.degrees + 90, sprite2.degrees, sprite2.degrees + 90};
     //since we know we're dealing with rectangles, the normals can just be the angle each sprite is at and the angle + 90 degrees
-    cDoubleVector minTranslationVector = (cDoubleVector) {-1, 0};
+    cDoubleVector minTranslationVector = (cDoubleVector) {0, 0};
 
     /*int firstPts[2] = {0, 0};  //debugging found points
     int secondPts[2] = {0, 0};*/
@@ -1304,7 +1304,7 @@ int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, 
 * \param degrees - the amount of rotation in degrees
 * \return a cDoublePt with the rotated point
 */
-cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, int degrees)
+cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees)
 {
 
     double s = sin(degToRad(degrees));
