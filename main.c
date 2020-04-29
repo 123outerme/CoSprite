@@ -96,10 +96,11 @@ int main(int argc, char* argv[])
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, /*(c2DModel*[1]) {&model}*/NULL, 0, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     add2DModelToCScene(&scene, &model);
-    int key;
+    SDL_Keycode key;
+
     while(!(key == -1 || key == SDLK_ESCAPE))
     {
-        key = getKey(false).key.keysym.sym;
+        key = getKey(false);
         if (key == SDLK_w)
         {
             model.rect.y -= 8;

@@ -27,15 +27,16 @@
 
 typedef struct _cKey
 {
-    SDL_KeyboardEvent key;
+    const Uint8* keyStates;
     SDL_MouseButtonEvent click;
     bool isClick;  /**< If true, then no mouse input */
     bool quitInput;  /**< True if given any sort of quit-like input */
 } cInputState;
 
 //function prototypes:
-cInputState getKey(bool useMouse);
-cInputState waitForKey(bool useMouse);
+cInputState cGetInputState(bool useMouse);
+SDL_Keycode getKey(bool useMouse);
+SDL_Keycode waitForKey(bool useMouse);
 bool setKey(SDL_Scancode key, int keyslot);
 void handleTextInput(char* text, SDL_Keycode key, int maxChar);
 
