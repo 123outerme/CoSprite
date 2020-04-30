@@ -1040,7 +1040,7 @@ cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast
     }
     else
     {
-        cDoubleVector mtv = (cDoubleVector) {-1, 0};
+        cDoubleVector mtv = (cDoubleVector) {0, 0};
         for(int i = 0; i < model1.numSprites; i++)
         {
             for(int x = 0; x < model2.numSprites; x++)
