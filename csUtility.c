@@ -46,7 +46,7 @@ char* removeNewline(char* stuff, char replacement, int maxLength)
 }
 
 
-int getDistance(int x1, int y1, int x2, int y2)
+double getDistance(double x1, double y1, double x2, double y2)
 {
     return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
 }

@@ -130,7 +130,7 @@ void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt p
     model->fixed = fixed;
     model->subclass = subclass;
     model->renderLayer = renderLayer;
-    sortCSpritesInModel(model);
+    //sortCSpritesInModel(model);
 }
 
 /** \brief clears out a c2DModel and its memory
@@ -217,7 +217,7 @@ void importC2DModel(c2DModel* model, char* filepath)
     }
     free(data);
     model->subclass = NULL;  //subclass not stored
-    sortCSpritesInModel(model);  //sort for drawing efficiency
+    //sortCSpritesInModel(model);  //sort for drawing efficiency
 }
 
 /** \brief converts a c2DModel into text and saves it to a file (not including subclass)
@@ -549,7 +549,7 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* s
     else
     {
         scenePtr->resources = NULL;
-        scenePtr->resCount = resCount;
+        scenePtr->resCount = 0;
     }
 
     if (stringCount > 0 && strings != NULL)
@@ -982,40 +982,44 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
 */
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using the Separation Axis Theorem
 {
-    cDoublePt center1 = (cDoublePt) {(sprite1.center.x + sprite1.drawRect.x) * sprite1.scale, (sprite1.center.y + sprite1.drawRect.y) * sprite1.scale};
+    cDoublePt center1 = (cDoublePt) {sprite1.drawRect.x + sprite1.center.x * sprite1.scale, sprite1.drawRect.y + sprite1.center.y * sprite1.scale};
 
-    cDoublePt corners1[4] = {rotatePoint((cDoublePt) {sprite1.drawRect.x * sprite1.scale, sprite1.drawRect.y * sprite1.scale}, center1, sprite1.degrees),
-    rotatePoint((cDoublePt) {(sprite1.drawRect.x + sprite1.drawRect.w) * sprite1.scale, sprite1.drawRect.y * sprite1.scale}, center1, sprite1.degrees),
-    rotatePoint((cDoublePt) {(sprite1.drawRect.x + sprite1.drawRect.w * sprite1.scale), (sprite1.drawRect.y + sprite1.drawRect.h) * sprite1.scale}, center1, sprite1.degrees),
-    rotatePoint((cDoublePt) {sprite1.drawRect.x * sprite1.scale, (sprite1.drawRect.y + sprite1.drawRect.h * sprite1.scale)}, center1, sprite1.degrees)};
+    cDoublePt corners1[4] = {rotatePoint((cDoublePt) {sprite1.drawRect.x, sprite1.drawRect.y}, center1, sprite1.degrees),
+    rotatePoint((cDoublePt) {sprite1.drawRect.x + sprite1.drawRect.w * sprite1.scale, sprite1.drawRect.y}, center1, sprite1.degrees),
+    rotatePoint((cDoublePt) {sprite1.drawRect.x + sprite1.drawRect.w * sprite1.scale, sprite1.drawRect.y + sprite1.drawRect.h * sprite1.scale}, center1, sprite1.degrees),
+    rotatePoint((cDoublePt) {sprite1.drawRect.x * sprite1.scale, sprite1.drawRect.y + sprite1.drawRect.h * sprite1.scale}, center1, sprite1.degrees)};
     //we find the corners of the first sprite, taking into account scale, center of rotation, and angle
 
-    cDoublePt center2 = (cDoublePt) {(sprite2.center.x + sprite2.drawRect.x) * sprite2.scale, (sprite2.center.y + sprite2.drawRect.y) * sprite2.scale};
+    cDoublePt center2 = (cDoublePt) {sprite2.drawRect.x + sprite2.center.x * sprite2.scale, sprite2.drawRect.y + sprite2.center.y * sprite2.scale};
 
-    cDoublePt corners2[4] = {rotatePoint((cDoublePt) {sprite2.drawRect.x * sprite2.scale, sprite2.drawRect.y * sprite2.scale}, center2, sprite2.degrees),
-    rotatePoint((cDoublePt) {(sprite2.drawRect.x + sprite2.drawRect.w) * sprite2.scale, sprite2.drawRect.y * sprite2.scale}, center2, sprite2.degrees),
-    rotatePoint((cDoublePt) {(sprite2.drawRect.x + sprite2.drawRect.w * sprite2.scale), (sprite2.drawRect.y + sprite2.drawRect.h) * sprite2.scale}, center2, sprite2.degrees),
-    rotatePoint((cDoublePt) {sprite2.drawRect.x * sprite2.scale, (sprite2.drawRect.y + sprite2.drawRect.h * sprite2.scale)}, center2, sprite2.degrees)};
+    cDoublePt corners2[4] = {rotatePoint((cDoublePt) {sprite2.drawRect.x, sprite2.drawRect.y}, center2, sprite2.degrees),
+    rotatePoint((cDoublePt) {sprite2.drawRect.x + sprite2.drawRect.w * sprite2.scale, sprite2.drawRect.y}, center2, sprite2.degrees),
+    rotatePoint((cDoublePt) {sprite2.drawRect.x + sprite2.drawRect.w * sprite2.scale, sprite2.drawRect.y + sprite2.drawRect.h * sprite2.scale}, center2, sprite2.degrees),
+    rotatePoint((cDoublePt) {sprite2.drawRect.x * sprite2.scale, sprite2.drawRect.y + sprite2.drawRect.h * sprite2.scale}, center2, sprite2.degrees)};
     //and same for the second sprite
 
     //cDoublePt realCenter1 = {(corners1[0].x + sprite1.drawRect.w / 2) * sprite1.scale, (corners1[0].y + sprite1.drawRect.h / 2) * sprite1.scale};
     //cDoublePt realCenter2 = {(corners2[0].x + sprite2.drawRect.w / 2) * sprite2.scale, (corners2[0].y + sprite2.drawRect.h / 2) * sprite2.scale};
     //get their physical centers, not their draw rotation centers
 
-    /*SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    /*
+    SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderClear(global.mainRenderer);
     SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0x00, 0x00, 0xFF);
 
-    for(int i = 0; i < 4; i++)
-        SDL_RenderDrawPoint(global.mainRenderer, corners1[i].x, corners1[i].y);  //debugging corner generation
+    for(int i = 1; i < 5; i++)
+        SDL_RenderDrawLine(global.mainRenderer, corners1[i - 1].x, corners1[i - 1].y, corners1[i % 4].x, corners1[i % 4].y);
+        //SDL_RenderDrawPoint(global.mainRenderer, corners1[i].x, corners1[i].y);  //debugging corner generation
 
-    for(int i = 0; i < 4; i++)
-        SDL_RenderDrawPoint(global.mainRenderer, corners2[i].x, corners2[i].y);
+    for(int i = 1; i < 5; i++)
+        SDL_RenderDrawLine(global.mainRenderer, corners2[i - 1].x, corners2[i - 1].y, corners2[i % 4].x, corners2[i % 4].y);
+        //SDL_RenderDrawPoint(global.mainRenderer, corners2[i].x, corners2[i].y);
 
-    SDL_RenderPresent(global.mainRenderer);
-    waitForKey(true);*/
+    //SDL_RenderPresent(global.mainRenderer);
+    //waitForKey(true);
+    //*/
 
-    double normals[8] = {sprite1.degrees, sprite1.degrees + 90, sprite2.degrees, sprite2.degrees + 90};
+    double normals[4] = {sprite1.degrees, sprite1.degrees + 90, sprite2.degrees, sprite2.degrees + 90};
     //since we know we're dealing with rectangles, the normals can just be the angle each sprite is at and the angle + 90 degrees
     cDoubleVector minTranslationVector = (cDoubleVector) {0, 0};
 
@@ -1064,12 +1068,14 @@ cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using t
         }
         //and the same thing for the second object as well
 
-        /*printf("%.2f degrees\n%d, %d\n%d, %d\n\n%f, %f\n%f, %f\n\n", normals[i], firstPts[0], firstPts[1], secondPts[0], secondPts[1], min1, max1, min2, max2);
+        /*
+        //printf("%.2f degrees\n%d, %d\n%d, %d\n\n%f, %f\n%f, %f\n\n", normals[i], firstPts[0], firstPts[1], secondPts[0], secondPts[1], min1, max1, min2, max2);
 
         SDL_RenderFillRect(global.mainRenderer, &((SDL_Rect) {.x = min1, .y = 0, .w = max1 - min1, .h = 4}));
         SDL_RenderFillRect(global.mainRenderer, &((SDL_Rect) {.x = min2, .y = 6, .w = max2 - min2, .h = 4}));
         SDL_RenderPresent(global.mainRenderer);  //debugging projection
-        waitForKey(true);*/
+        //waitForKey(true);
+        //*/
 
         //printf("%f or %f\n", min2 - max1, min1 - max2);
         if (min2 >= max1 || min1 >= max2)
@@ -1078,14 +1084,14 @@ cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2)  //using t
             break;
         }
         else
-        {  //finding the overlap is glitched with rotated stuff when s1 pos closer to origin than s2, but almost fixed
+        {
             double overlap = max1 - min2, o2 = max2 - min1, degrees = normals[i];
             if (o2 < overlap)
                 overlap = o2;
             if (min1 < min2)
-                degrees += 180;  //somewhere around here is probably where MVT with rotated shapes is glitched
+                degrees += 180;
 
-            if (fabs(overlap) < minTranslationVector.magnitude || minTranslationVector.magnitude == -1)
+            if (fabs(overlap) < minTranslationVector.magnitude || minTranslationVector.magnitude == 0)
             {
                 minTranslationVector = (cDoubleVector) {overlap, degrees};
                 //debugI = i;
@@ -1117,9 +1123,9 @@ cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast
     if (fast)
     {
         cSprite sprite1;
-        initCSprite(&sprite1, NULL, ".", 0, (cDoubleRect) {model1.rect.x * model1.scale, model1.rect.y * model1.scale, model1.rect.w * model1.scale, model1.rect.h * model1.scale}, model1.rect, &model1.center, model1.scale, model1.flip, model1.degrees, false, NULL, 0);
+        initCSprite(&sprite1, NULL, ".", 0, (cDoubleRect) {model1.rect.x, model1.rect.y, model1.rect.w * model1.scale, model1.rect.h * model1.scale}, model1.rect, &model1.center, model1.scale, model1.flip, model1.degrees, false, NULL, 0);
         cSprite sprite2;
-        initCSprite(&sprite2, NULL, ".", 0, (cDoubleRect) {model2.rect.x * model2.scale, model2.rect.y * model2.scale, model2.rect.w * model2.scale, model2.rect.h * model2.scale}, model2.rect, &model2.center, model2.scale, model2.flip, model2.degrees, false, NULL, 0);
+        initCSprite(&sprite2, NULL, ".", 0, (cDoubleRect) {model2.rect.x, model2.rect.y, model2.rect.w * model2.scale, model2.rect.h * model2.scale}, model2.rect, &model2.center, model2.scale, model2.flip, model2.degrees, false, NULL, 0);
         return checkCSpriteCollision(sprite1, sprite2);
     }
     else
