@@ -178,6 +178,21 @@ int main(int argc, char* argv[])
         if (key == SDLK_v)
             camera.zoom += .1;
 
+        if (key == SDLK_9)
+        {
+            lowerSprite.scale -= .1;
+            upperSprite.scale -= .1;
+            model.sprites[0].scale -= .1;
+            model.sprites[1].scale -= .1;
+        }
+        if (key == SDLK_0)
+        {
+            lowerSprite.scale += .1;
+            upperSprite.scale += .1;
+            model.sprites[0].scale += .1;
+            model.sprites[1].scale += .1;
+        }
+
         if (key == SDLK_MINUS)
         {
             lowerSprite.degrees -= 10;

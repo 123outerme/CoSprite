@@ -66,17 +66,35 @@ void destroyCSprite(cSprite* sprite)
  */
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride)
 {
-    double scale = sprite.scale * (sprite.fixed ? 1.0 : camera.zoom);
-    cDoublePt point = (cDoublePt) {sprite.drawRect.x * scale, sprite.drawRect.y * scale};
+    //find the total scaling factor
+    const double scale = sprite.scale * (sprite.fixed ? 1.0 : camera.zoom);
+
+
+    //uncomment the last half to have model scaling center around the center pt rather than the x/y coords
+    //it takes the rect point and offsets it by the delta width / 2 (so that the sprite can scale around its visual center rather than its x/y coords
+    cDoublePt point = (cDoublePt) {sprite.drawRect.x /*- ((sprite.drawRect.w * (sprite.scale - 1)) / 2)*/,
+                                   sprite.drawRect.y /*- ((sprite.drawRect.h * (sprite.scale - 1)) / 2)*/};
+
+    if (!(sprite.fixed || fixedOverride))
+    {  //if we are able to relate it to the camera
+        //scale the points relative to the center of the window
+        point.x = (point.x - global.windowW / 2.0) * camera.zoom + global.windowW / 2.0;
+        point.y = (point.y - global.windowH / 2.0) * camera.zoom + global.windowH / 2.0;
+    }
+
+    //rotate the point around its center
     point = rotatePoint(point, (cDoublePt) {sprite.drawRect.x + sprite.center.x * scale, sprite.drawRect.y + sprite.center.y * scale}, sprite.degrees);
-    if (!(sprite.fixed | fixedOverride))
-    {
+    if (!(sprite.fixed || fixedOverride))
+    {  //if we are able to relate it to the camera
+        //rotate the point around the camera's center
         point = rotatePoint(point, (cDoublePt) {global.windowW / 2, global.windowH / 2}, camera.degrees);
+
+        //apply the camera offset
         point.x -= (camera.rect.x * global.windowW / camera.rect.w);
         point.y -= (camera.rect.y * global.windowH / camera.rect.h);
     }
     SDL_RenderCopyEx(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}),
-                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom), .h = sprite.drawRect.h * sprite.scale * (sprite.fixed ? 1.0 : camera.zoom)}),
+                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * scale, .h = sprite.drawRect.h * scale}),
                      sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
@@ -98,7 +116,7 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt position, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int renderLayer)
 {
     model->sprites = calloc(numSprites, sizeof(cSprite));
-    memcpy((void*) model->sprites, (void*) sprites, numSprites * sizeof(cSprite));
+    memcpy(model->sprites, sprites, numSprites * sizeof(cSprite));
     //model->sprites = (numSprites) ? sprites : NULL;
     model->numSprites = numSprites;
     model->rect = (cDoubleRect) {position.x, position.y, 0, 0};
@@ -112,6 +130,7 @@ void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt p
     model->fixed = fixed;
     model->subclass = subclass;
     model->renderLayer = renderLayer;
+    sortCSpritesInModel(model);
 }
 
 /** \brief clears out a c2DModel and its memory
@@ -139,7 +158,7 @@ void destroyC2DModel(c2DModel* model)
  * \param filepath - where to get the file from
 */
 void importC2DModel(c2DModel* model, char* filepath)
-{
+{  //each model->something = strtok() is a field from the data, in the order called
     char* data = calloc(2048, sizeof(char));
     readLine(filepath, 0, 2048, &data);
     model->numSprites = strtol(strtok(data, "{,}"), NULL, 10);
@@ -154,26 +173,29 @@ void importC2DModel(c2DModel* model, char* filepath)
     model->degrees = strtod(strtok(NULL, "{,}"), NULL);
     model->renderLayer = strtol(strtok(NULL, "{,}"), NULL, 10);
     model->fixed = strtol(strtok(NULL, "{,}"), NULL, 10);
+
     model->sprites = calloc(model->numSprites, sizeof(cSprite));
+
+    //Get the individual sprite data
     for(int i = 0; i < model->numSprites; i++)
     {
         readLine(filepath, i + 1, 2048, &data);
         strncpy(model->sprites[i].textureFilepath, strtok(data, "{,}"), MAX_PATH);
-        if (i == 0)
-            loadIMG(model->sprites[i].textureFilepath, &(model->sprites[i].texture));
+        if (i == 0)  //if the first sprite
+            loadIMG(model->sprites[i].textureFilepath, &(model->sprites[i].texture));  //load its texture
         else
-        {
+        {  //after the first sprite
             model->sprites[i].texture = NULL;
             for(int x = i - 1; x >= 0; x--)
             {
                 if (!strcmp(model->sprites[i].textureFilepath, model->sprites[x].textureFilepath))
-                {
-                    model->sprites[i].texture = model->sprites[x].texture;
+                {  //if the texture used is the same as any of the others
+                    model->sprites[i].texture = model->sprites[x].texture;  //share the texture
                     break;
                 }
             }
-            if (!model->sprites[i].texture)
-                loadIMG(model->sprites[i].textureFilepath, &(model->sprites[i].texture));
+            if (!model->sprites[i].texture)  //if we didn't share a texture
+                loadIMG(model->sprites[i].textureFilepath, &(model->sprites[i].texture));  //load in the one that's supposed to go here
         }
         model->sprites[i].id = strtol(strtok(NULL, "{,}"), NULL, 10);
         model->sprites[i].drawRect.x = strtod(strtok(NULL, "{,}"), NULL);
@@ -191,13 +213,14 @@ void importC2DModel(c2DModel* model, char* filepath)
         model->sprites[i].degrees = strtod(strtok(NULL, "{,}"), NULL);
         model->sprites[i].renderLayer = strtol(strtok(NULL, "{,}"), NULL, 10);
         model->sprites[i].fixed = strtol(strtok(NULL, "{,}"), NULL, 10);
-        model->sprites[i].subclass = NULL;
+        model->sprites[i].subclass = NULL;  //subclass data not stored
     }
     free(data);
-    model->subclass = NULL;
+    model->subclass = NULL;  //subclass not stored
+    sortCSpritesInModel(model);  //sort for drawing efficiency
 }
 
-/** \brief converts a c2DModel into text and saves it to a file
+/** \brief converts a c2DModel into text and saves it to a file (not including subclass)
  *
  * \param model - c2DModel you want saved
  * \param filepath - where to save the file to
@@ -222,6 +245,27 @@ void exportC2DModel(c2DModel* model, char* filepath)
     free(data);
 }
 
+/** \brief Sorts a model's sprites by draw priority to optimize speed
+ *
+ * \param model - model you want sorted
+ */
+void sortCSpritesInModel(c2DModel* model)
+{  //sorts from highest to lowest
+    //insertion sort (sorry)
+    for(int i = 1; i < model->numSprites; i++)
+    {
+        for(int j = i; j > 0; j--)
+        {
+            if (model->sprites[j].renderLayer > model->sprites[j - 1].renderLayer)  //if they are not in highest to lowest
+            {  //swap
+                cSprite temp = model->sprites[j];
+                model->sprites[j] = model->sprites[j - 1];
+                model->sprites[j - 1] = temp;
+            }
+        }
+    }
+    //printf("------ %d\n", model->sprites[0].renderLayer);
+}
 
 //TODO: Sort by priority then draw
 /** \brief draws a c2DModel to the screen
@@ -232,35 +276,56 @@ void exportC2DModel(c2DModel* model, char* filepath)
  */
 void drawC2DModel(c2DModel model, cCamera camera, bool update)
 {
-    for(int priority = 5; priority >= 1; priority--)
+    for(int priority = global.renderLayers; priority >= 1; priority--)
     {
         for(int i = 0; i < model.numSprites; i++)
         {
             if (model.sprites[i].renderLayer == priority)
             {
-                {
-                    double scale = model.scale * model.sprites[i].scale * (model.fixed | model.sprites[i].fixed ? 1.0 : camera.zoom);
-                    cDoublePt point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
+                double scale = model.scale * model.sprites[i].scale * (model.fixed || model.sprites[i].fixed ? 1.0 : camera.zoom);
+                //old point definition
+                //cDoublePt point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
 
-                    point = rotatePoint(
-                                rotatePoint(point, (cDoublePt) {point.x + model.sprites[i].center.x * scale, point.y + model.sprites[i].center.y * scale}, model.sprites[i].degrees),
-                            (cDoublePt) {(model.rect.x + model.center.x) * scale, (model.rect.y + model.center.y) * scale}, model.degrees);
+                //uncomment the last half to have model scaling center around the center pt rather than the x/y coords
+                cDoublePt point = {model.rect.x + (model.sprites[i].drawRect.x * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
+                                   model.rect.y + (model.sprites[i].drawRect.y * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
 
-                    if (!(model.sprites[i].fixed | model.fixed))
-                    {
-                        point = rotatePoint(point, (cDoublePt) {global.windowW / 2 , global.windowH / 2}, camera.degrees);
+                cDoublePt modelCtrPt = {model.rect.x + model.center.x/* - (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
+                                     model.rect.y + model.center.y/* - (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
 
-                        point.x -= camera.rect.x * global.windowW / camera.rect.w;
-                        point.y -= camera.rect.y * global.windowH / camera.rect.h;
-                    }
-
-                    SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
-                                     &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = model.sprites[i].drawRect.w * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom), .h = model.sprites[i].drawRect.h * model.scale * model.sprites[i].scale * (model.sprites[i].fixed ? 1.0 : camera.zoom)}),
-                                     model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
-                                     &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
-                    if (update)
-                        SDL_RenderPresent(global.mainRenderer);
+                //*
+                if (!(model.sprites[i].fixed || model.fixed))
+                {  //if we are able to relate it to the camera
+                    //scale the points relative to the center of the window
+                    point.x = (point.x - global.windowW / 2.0) * camera.zoom + global.windowW / 2.0;
+                    point.y = (point.y - global.windowH / 2.0) * camera.zoom + global.windowH / 2.0;
+                    modelCtrPt.x = (modelCtrPt.x - global.windowW / 2.0) * camera.zoom + global.windowW / 2.0;
+                    modelCtrPt.y = (modelCtrPt.y - global.windowH / 2.0) * camera.zoom + global.windowH / 2.0;
                 }
+                //*/
+
+                //rotate first around the model center, then the individual sprite's center
+                point = rotatePoint(
+                            rotatePoint(point, (cDoublePt) {point.x + model.sprites[i].center.x * scale, point.y + model.sprites[i].center.y * scale}, model.sprites[i].degrees),
+                        modelCtrPt, model.degrees);
+
+                if (!(model.sprites[i].fixed || model.fixed))
+                {  //if we are able to relate it to the camera
+                    //rotate the point around the camera
+                    point = rotatePoint(point, (cDoublePt) {global.windowW / 2 , global.windowH / 2}, camera.degrees);
+
+                    //apply the camera offset
+                    point.x -= camera.rect.x * global.windowW / camera.rect.w;
+                    point.y -= camera.rect.y * global.windowH / camera.rect.h;
+                }
+
+                SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
+                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = model.sprites[i].drawRect.w * scale, .h = model.sprites[i].drawRect.h * scale}),
+                                 model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
+                                 &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
+                if (update)
+                    SDL_RenderPresent(global.mainRenderer);
+
                 /*model.sprites[i].drawRect.x += model.rect.x;
                 model.sprites[i].drawRect.y += model.rect.y;
                 drawCSprite(model.sprites[i], camera, update, model.fixed);
@@ -444,45 +509,62 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* s
 {
     scenePtr->camera = camera;
     scenePtr->bgColor = bgColor;
-    if (spriteCount > 0)
+    if (spriteCount > 0 && sprites != NULL)
     {
         scenePtr->sprites = calloc(spriteCount, sizeof(cSprite*));
         for(int i = 0; i < spriteCount; i++)
             scenePtr->sprites[i] = sprites[i];
+
+        scenePtr->spriteCount = spriteCount;
     }
     else
+    {
         scenePtr->sprites = NULL;
-    scenePtr->spriteCount = spriteCount;
+        scenePtr->spriteCount = 0;
+    }
 
-    if (modelCount > 0)
+
+    if (modelCount > 0 && models != NULL)
     {
         scenePtr->models = calloc(modelCount, sizeof(c2DModel*));
         for(int i = 0; i < modelCount; i++)
             scenePtr->models[i] = models[i];
+
+        scenePtr->modelCount = modelCount;
     }
     else
+    {
         scenePtr->models = NULL;
-    scenePtr->modelCount = modelCount;
+        scenePtr->modelCount = 0;
+    }
 
-    if (resCount > 0)
+    if (resCount > 0 && resources != NULL)
     {
         scenePtr->resources = calloc(resCount, sizeof(cResource*));
         for(int i = 0; i < resCount; i++)
             scenePtr->resources[i] = resources[i];
+
+        scenePtr->resCount = resCount;
     }
     else
+    {
         scenePtr->resources = NULL;
-    scenePtr->resCount = resCount;
+        scenePtr->resCount = resCount;
+    }
 
-    if (stringCount > 0)
+    if (stringCount > 0 && strings != NULL)
     {
         scenePtr->strings = calloc(stringCount, sizeof(cText*));
         for(int i = 0; i < stringCount; i++)
             scenePtr->strings[i] = strings[i];
+
+        scenePtr->stringCount = stringCount;
     }
     else
+    {
         scenePtr->strings = NULL;
-    scenePtr->stringCount = stringCount;
+        scenePtr->stringCount = 0;
+    }
 }
 
 /** \brief Adds a cSprite to a scene.
@@ -822,7 +904,8 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
 
     for(int priority = global.renderLayers; priority >= 1; priority--)
     {
-        /*for(int i = 0; i < scenePtr->spriteCount; i++)
+        /*
+        for(int i = 0; i < scenePtr->spriteCount; i++)
         {
             if (scenePtr->sprites[i]->renderLayer == priority)
                 drawCSprite(*(scenePtr->sprites[i]), *(scenePtr->camera), false, false);
@@ -844,7 +927,8 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
         {
             if (scenePtr->strings[i]->renderLayer == priority)
                 drawCText(*(scenePtr->strings[i]), *(scenePtr->camera), false);
-        }*/
+        }
+        //*/
         for(int i = 0; i < maxNum; i++)
         {
             if (scenePtr->spriteCount > i && scenePtr->sprites[i]->renderLayer == priority)
