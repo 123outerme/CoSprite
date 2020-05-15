@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 11
-    #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.11.0"
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.11.1"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -51,7 +51,7 @@
 
 //struct definitions:
 typedef struct _coSprite {
-    SDL_Window** windows;
+    SDL_Window* window;
     int windowsOpen;
     SDL_Renderer* mainRenderer;
     TTF_Font* mainFont;
@@ -164,8 +164,6 @@ typedef struct _cScene {
 //initialization
 int initCoSprite();
 void closeCoSprite();
-int openCWindow(SDL_Window* windowPtr, char* windowName, int windowWidth, int windowHeight);
-void closeCWindow(int windowPos);
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
@@ -199,7 +197,7 @@ int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free);
 int addResourceToCScene(cScene* scenePtr, cResource* resource);
 int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free);
 void destroyCScene(cScene* scenePtr);
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw);
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);
@@ -215,7 +213,7 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
 
 //global variable declarations:
-SDL_Window* mainWindow;
 coSprite global;
+Uint32 startTime;  /**< not set in-engine; if you want to collect a framerate from drawCScene(), set this right before you start your loop */
 
 #endif // CSGRAPHICS_H_INCLUDED

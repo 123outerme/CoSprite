@@ -97,6 +97,8 @@ int main(int argc, char* argv[])
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, /*(c2DModel*[1]) {&model}*/NULL, 0, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     add2DModelToCScene(&scene, &model);
     SDL_Keycode key;
+    startTime = SDL_GetTicks();
+    int framerate = 0;
 
     while(!(key == -1 || key == SDLK_ESCAPE))
     {
@@ -208,9 +210,14 @@ int main(int argc, char* argv[])
             model.sprites[1].degrees += 10;
         }
 
+        if (key == SDLK_F11)
+            printf("%d\n", framerate);
+
         if (key == SDLK_F12)
             printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
-        drawCScene(&scene, true, true);
+
+
+        drawCScene(&scene, true, true, &framerate);
     }
     free(randString);
     free(randomNums.arr);

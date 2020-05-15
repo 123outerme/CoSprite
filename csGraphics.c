@@ -791,12 +791,12 @@ int addResourceToCScene(cScene* scenePtr, cResource* resource)
     if (scenePtr->resCount == 0)
         tempResources = calloc(scenePtr->resCount + 1, sizeof(cResource*));
     else
-        tempResources = realloc(scenePtr->resources, scenePtr->resCount * sizeof(cResource*));
+        tempResources = realloc(scenePtr->resources, (scenePtr->resCount + 1) * sizeof(cResource*));
     if (tempResources != NULL)
     {
         free(scenePtr->resources);
         scenePtr->resources = tempResources;
-        scenePtr->resCount++;
+        scenePtr->resources[scenePtr->resCount++] = resource;
     }
     else
     {
@@ -894,8 +894,10 @@ void destroyCScene(cScene* scenePtr)
  * \param scenePtr - pointer to your cScene
  * \param redraw - if nonzero, will update the screen
  */
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps)
 { //TODO: Speed this up
+    static int frame = 0;
+
     SDL_SetRenderDrawColor(global.mainRenderer, scenePtr->bgColor.r, scenePtr->bgColor.g, scenePtr->bgColor.b, scenePtr->bgColor.a);
     if (clearScreen)
         SDL_RenderClear(global.mainRenderer);
@@ -946,7 +948,13 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw)
     }
 
     if (redraw)
+    {
         SDL_RenderPresent(global.mainRenderer);
+        frame++;
+    }
+
+    if (fps != NULL)
+        *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
 }
 
 /** \brief Draws text to the screen using `global.mainFont`, wrapped and bounded
@@ -1155,7 +1163,7 @@ cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast
 int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize, int renderLayers, SDL_Color transparentColor, Uint32 windowFlags)
 {
     int status = 0;
-    mainWindow = NULL;
+    global.window = NULL;
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO) < 0)
     {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
@@ -1190,21 +1198,18 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
         }
         global.mainRenderer = NULL;
         global.mainFont = NULL;
-        mainWindow = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
-        if (!mainWindow)
+        global.window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
+        if (!global.window)
         {
             printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
             return 2;
         }
         else
         {
-            global.windows = calloc(1, sizeof(SDL_Window*));
-            global.windows[0] = mainWindow;
-            global.windowsOpen = 1;
             global.windowW = windowWidth;
             global.windowH = windowHeight;
             global.renderLayers = (renderLayers < 1) ? 6 : renderLayers;
-            global.mainRenderer = SDL_CreateRenderer(mainWindow, -1, SDL_RENDERER_ACCELERATED);
+            global.mainRenderer = SDL_CreateRenderer(global.window, -1, SDL_RENDERER_ACCELERATED);
             if(!global.mainRenderer)
             {
                 printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
@@ -1217,7 +1222,7 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
                 if (iconPath != NULL)
                 {
                     SDL_Surface* iconSurface = IMG_Load(iconPath);
-                    SDL_SetWindowIcon(mainWindow, iconSurface);
+                    SDL_SetWindowIcon(global.window, iconSurface);
                     SDL_FreeSurface(iconSurface);
                 }
 
@@ -1252,65 +1257,32 @@ void closeCoSprite()
 {
     TTF_CloseFont(global.mainFont);
     //TTF_CloseFont(smallFont);
-    if (mainWindow)
-        SDL_DestroyWindow(mainWindow);
+
+    SDL_DestroyWindow(global.window);
+
     if (global.mainRenderer)
         SDL_DestroyRenderer(global.mainRenderer);
-    /*for(int i = 0; i < MAX_SOUNDS; i++)
+
+    /*
+    for(int i = 0; i < MAX_SOUNDS; i++)
     {
         if (audioArray[i])
             Mix_FreeChunk(audioArray[i]);
-    }*/
+    }
+    */
 
-    /*for(int i = 0; i < MAX_MUSIC; i++)
+    /*
+    for(int i = 0; i < MAX_MUSIC; i++)
     {
         if (musicArray[i])
             Mix_FreeMusic(musicArray[i]);
-    }*/
+    }
+    */
 
     TTF_Quit();
     IMG_Quit();
     Mix_CloseAudio();
     SDL_Quit();
-}
-
-/** \brief Opens another SDL2 Window and saves its information to the coSprite object `global`.
- *
- * \param windowPtr - the SDL_Window object you define for this window.
- * \param windowName - a string containing the name you want the window to have.
- * \param windowWidth - how wide the window should be, in pixels
- * \param window Height - how tall the window should be, in pixels
- * \return the position of the window in `global.windows[]`
-*/
-int openCWindow(SDL_Window* windowPtr, char* windowName, int windowWidth, int windowHeight)
-{
-    windowPtr = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    global.windows = realloc((void*) global.windows, global.windowsOpen + 1);
-    global.windows[global.windowsOpen] = windowPtr;
-    return global.windowsOpen++;
-}
-
-/** \brief closes a SDL2 window you opened with CoSprite.
- *
- * \param windowPos - the position of the window you want closed in `global.windows[]`. 0 is always the main window
-*/
-void closeCWindow(int windowPos)
-{
-    SDL_DestroyWindow(global.windows[windowPos]);
-    global.windows[windowPos] = NULL;
-    SDL_Window* theseWindows[global.windowsOpen];
-    if (windowPos < global.windowsOpen - 1)
-    {
-        int k = 0;
-        for(int i = 0; i < global.windowsOpen; i++)
-        {
-            if (global.windows[i] != NULL)
-                theseWindows[k++] = global.windows[i];
-        }
-        memcpy(global.windows, theseWindows, k * sizeof(SDL_Window*));
-    }
-    global.windows = realloc((void*) global.windows, global.windowsOpen - 1);
-    global.windowsOpen--;
 }
 
 /** \brief Loads an image into a SDL_Texture*
@@ -1442,9 +1414,9 @@ int checkFile(char* filePath)
 {
     FILE* filePtr = fopen(filePath, "r");
 	if (!filePtr)
-		return false;
+		return 0;
     char ch;
-    int lines = 0;
+    int lines = 1;
     while(!feof(filePtr))
     {
       ch = fgetc(filePtr);
@@ -1515,9 +1487,10 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
     {
         if (appendLine(filePath, allLines[i], false) == -1)
             return -1;
+        free(allLines[i]);
         //printf("%s\n", allLines[i]);
     }
-
+    free(allLines);
     return 0;
 }
 
@@ -1526,7 +1499,7 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
  * \param filePath - valid string filepath (relative or absolute)
  * \param lineNum - the line number (starting from 0)
  * \param maxLength - how long the string should be, max.
- * \param output - valid pointer to your char* (should not be read-only)
+ * \param output - pointer to an uninitialized char* you want to save the line to
  * \return NULL if it fails, otherwise your string
  */
 char* readLine(char* filePath, int lineNum, int maxLength, char** output)
@@ -1536,15 +1509,18 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output)
 		return NULL;
 	else
 	{
-        char* thisLine = calloc(maxLength, sizeof(char));
+        char thisLine[maxLength];
         fseek(filePtr, 0, SEEK_SET);
+
         for(int p = 0; p <= lineNum; p++)
             fgets(thisLine, maxLength, filePtr);
+
         //printf("%s @ %d\n", thisLine, thisLine);
         strncpy(*output, thisLine, maxLength);
-        //printf("%s @ %d\n", output, output);
+        //printf("%s @ %x\n", output, output);
+
         fclose(filePtr);
-        free(thisLine);
+        //free(thisLine);
         return *output;
 	}
 }
