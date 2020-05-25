@@ -1369,7 +1369,7 @@ int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, 
     SDL_FreeSurface(txtSurface);
     return wh;
 }
-//
+
 /** \brief rotates one point around another.
 * \param pt - your point you want rotated
 * \param center - the center point to rotate <pt> around
@@ -1394,8 +1394,6 @@ cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees)
     return pt;
 }
 
-#ifndef CS_FILEIO_CREATE
-#define CS_FILEIO_CREATE
 /** \brief Creates a file, or clears contents if it exists.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1416,10 +1414,7 @@ int createFile(char* filePath)
 		return 0;
     }
 }
-#endif // CS_FILEIO_CREATE
 
-#ifndef CS_FILEIO_CHECK
-#define CS_FILEIO_CHECK
 /** \brief Checks if a file exists and if it has certain number of lines.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1443,10 +1438,7 @@ int checkFile(char* filePath)
     fclose(filePtr);
     return lines;
 }
-#endif // CS_FILEIO_CHECK
 
-#ifndef CS_FILEIO_APPEND
-#define CS_FILEIO_APPEND
 /** \brief Adds a line of text to the end of a file
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1469,10 +1461,7 @@ int appendLine(char* filePath, char* stuff, bool addNewline)
 		return 0;
 	}
 }
-#endif // CS_FILEIO_APPEND
 
-#ifndef CS_FILEIO_REPLACE
-#define CS_FILEIO_REPLACE
 /** \brief inserts a line at a certain position, if the file isn't too big
  *
  * \param filePath - valid string filepath (rel or absolute)
@@ -1515,10 +1504,7 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
     free(allLines);
     return 0;
 }
-#endif // CS_FILEIO_REPLACE
 
-#ifndef CS_FILEIO_READ
-#define CS_FILEIO_READ
 /** \brief Reads a line of a file.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1549,4 +1535,3 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output)
         return *output;
 	}
 }
-#endif // CS_FILEIO_READ

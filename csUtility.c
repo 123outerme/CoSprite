@@ -37,7 +37,7 @@ char* removeNewline(char* stuff, char replacement, int maxLength)
     {
         if (i < 0)
             return stuff;
-        if (stuff[i] == '\n')
+        if (stuff[i] == '\n' || stuff[i] == '\r')
         {
             stuff[i] = replacement;
         }

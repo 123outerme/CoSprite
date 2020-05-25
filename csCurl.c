@@ -5,7 +5,7 @@
  * \param flags - curl_global_init flags (typically CURL_GLOBAL_ALL)
  * \param certPath - the full path (including filename) to your cert *.pem file
  */
-void initCoSpriteCurl(long flags, char* certPath)
+void initCoSpriteCurl(long flags, char* certPath, bool verbose)
 {
     globalCurl.retCode = curl_global_init(flags);
     if(globalCurl.retCode != CURLE_OK)
@@ -16,14 +16,14 @@ void initCoSpriteCurl(long flags, char* certPath)
     else
         globalCurl.online = true;
 
-    initCSCurl(&globalCurl, certPath);
+    initCSCurl(&globalCurl, certPath, verbose);
 }
 
 /** \brief Initializes a curl handle. initCoSpriteCurl() must be called prior to this.
  *
  * \param handle - your csCurl pointer to be filled in (defaults to a GET)
  */
-void initCSCurl(csCurl* handle, char* certPath)
+void initCSCurl(csCurl* handle, char* certPath, bool verbose)
 {
     handle->retCode = CURLE_OK;
     handle->handle = curl_easy_init();
@@ -36,14 +36,17 @@ void initCSCurl(csCurl* handle, char* certPath)
         handle->online = true;
 
     curl_easy_setopt(handle->handle, CURLOPT_FOLLOWLOCATION, 1L);  //follow redirects
-    curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 1L);  //show verbose
+    if (verbose)
+        curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 1L);  //show verbose
+    else
+        curl_easy_setopt(handle->handle, CURLOPT_VERBOSE, 0L);  //turn off show verbose
     curl_easy_setopt(handle->handle, CURLOPT_CAINFO, certPath);  //give curl a list of good certs
     curl_easy_setopt(handle->handle, CURLOPT_USERAGENT, "libcurl-agent/1.0");     // some servers don't like requests that are made without a user-agent field, so we provide one
     curl_easy_setopt(handle->handle, CURLOPT_HTTPGET, 1L);  //set the user's request option to true (in this case, a GET)
     curl_easy_setopt(handle->handle, CURLOPT_SSL_SESSIONID_CACHE, 0L);  //i think we need to remove this
 }
 
-/** \brief
+/** \brief Submits a GET request, and outputs the data to `outputString`.
  *
  * \param handle - address of csCurl struct
  * \param url - the url you want to GET from, including any options or parameters
@@ -69,7 +72,7 @@ void csCurlPerformEasyGet(csCurl* handle, char* url, char* outputString)
     }
 }
 
-/** \brief
+/** \brief Submits a POST request (no headers changed).
  *
  * \param handle - address of csCurl struct
  * \param url - the url you want to POST to
@@ -80,6 +83,66 @@ void csCurlPerformEasyPost(csCurl* handle, char* url, char* data)
     curl_easy_setopt(handle->handle, CURLOPT_POST, 1L);
 
     curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS, data);
+
+    curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, (long) strlen(data));
+
+    curl_easy_setopt(handle->handle, CURLOPT_URL, url);
+
+    handle->retCode = curl_easy_perform(handle->handle);
+
+    if(handle->retCode != CURLE_OK)
+    {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(handle->retCode));
+        //handle->online = false;
+    }
+}
+
+void csCurlPerformEasyPatch(csCurl* handle, char* url, char* data)
+{
+    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+
+    curl_easy_setopt(handle->handle, CURLOPT_URL, url);
+
+    curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS, data);
+
+    curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, (long) strlen(data));
+
+    handle->retCode = curl_easy_perform(handle->handle);
+
+    if(handle->retCode != CURLE_OK)
+    {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(handle->retCode));
+        //handle->online = false;
+    }
+}
+
+void csCurlPerformEasyPut(csCurl* handle, char* url, char* data)
+{
+    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "PUT");
+
+    curl_easy_setopt(handle->handle, CURLOPT_URL, url);
+
+    curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDS, data);
+
+    curl_easy_setopt(handle->handle, CURLOPT_POSTFIELDSIZE, (long) strlen(data));
+
+    handle->retCode = curl_easy_perform(handle->handle);
+
+    if(handle->retCode != CURLE_OK)
+    {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(handle->retCode));
+        //handle->online = false;
+    }
+}
+
+/** \brief Submits a DELETE request.
+ *
+ * \param handle - address of csCurl struct
+ * \param url - the url you want to DELETE
+ */
+void csCurlPerformEasyDelete(csCurl* handle, char* url)
+{
+    curl_easy_setopt(handle->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
 
     curl_easy_setopt(handle->handle, CURLOPT_URL, url);
 

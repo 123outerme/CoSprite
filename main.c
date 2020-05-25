@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
 {
     argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
-    initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem");
+    initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem", true);
 
     randomNums = (intArray) {calloc(MAX_RAND_NUMS, sizeof(int)), 0};
     int randInts[3] = {0, 0, 0};
