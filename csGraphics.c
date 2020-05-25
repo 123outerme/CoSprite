@@ -957,6 +957,16 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps)
         *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
 }
 
+/** \brief Brings up a self-enclosed UI showing you what is in a cScene.
+ *
+ * \param scene cScene*
+ */
+void cSceneViewer(cScene* scene)
+{
+    //TODO
+}
+
+
 /** \brief Draws text to the screen using `global.mainFont`, wrapped and bounded
  *
  * \param input - text to be drawn
@@ -1384,6 +1394,8 @@ cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees)
     return pt;
 }
 
+#ifndef CS_FILEIO_CREATE
+#define CS_FILEIO_CREATE
 /** \brief Creates a file, or clears contents if it exists.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1404,7 +1416,10 @@ int createFile(char* filePath)
 		return 0;
     }
 }
+#endif // CS_FILEIO_CREATE
 
+#ifndef CS_FILEIO_CHECK
+#define CS_FILEIO_CHECK
 /** \brief Checks if a file exists and if it has certain number of lines.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1428,7 +1443,10 @@ int checkFile(char* filePath)
     fclose(filePtr);
     return lines;
 }
+#endif // CS_FILEIO_CHECK
 
+#ifndef CS_FILEIO_APPEND
+#define CS_FILEIO_APPEND
 /** \brief Adds a line of text to the end of a file
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1451,13 +1469,17 @@ int appendLine(char* filePath, char* stuff, bool addNewline)
 		return 0;
 	}
 }
+#endif // CS_FILEIO_APPEND
 
+#ifndef CS_FILEIO_REPLACE
+#define CS_FILEIO_REPLACE
 /** \brief inserts a line at a certain position, if the file isn't too big
  *
- * \param
- * \param
- * \param
- * \param
+ * \param filePath - valid string filepath (rel or absolute)
+ * \param lineNum - the line you wish to insert at (starting from 0)
+ * \param stuff - the data you wish to insert
+ * \param maxLength - the size in characters of how long any line in the file should be maximum.
+ * \param addNewline - if true, appends '\n' to your string inputted
  * \return -1 if failed to open or supply a valid line num, 0 if succeeded
  */
 int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool addNewline)
@@ -1493,7 +1515,10 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
     free(allLines);
     return 0;
 }
+#endif // CS_FILEIO_REPLACE
 
+#ifndef CS_FILEIO_READ
+#define CS_FILEIO_READ
 /** \brief Reads a line of a file.
  *
  * \param filePath - valid string filepath (relative or absolute)
@@ -1524,3 +1549,4 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output)
         return *output;
 	}
 }
+#endif // CS_FILEIO_READ

@@ -13,7 +13,7 @@ void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* 
     map->keys = calloc(numEntries, sizeof(char*));
     map->values = calloc(numEntries, sizeof(char*));
     map->subMaps = calloc(numEntries, sizeof(csMap*));
-    map->entryType = calloc(numEntries, sizeof(int));
+    map->entryTypes = calloc(numEntries, sizeof(int));
     for(int i = 0; i < numEntries; i++)
     {
         int keysSize = strlen(keys[i]) + 1;
@@ -25,9 +25,9 @@ void initCSMap(csMap* map, int numEntries, char* keys[], char* values[], csMap* 
         strncpy(map->values[i], values[i], valuesSize);
 
         if (entryType != NULL)
-            map->entryType[i] = (*entryType)[i];
+            map->entryTypes[i] = (*entryType)[i];
         else
-            map->entryType[i] = 0;
+            map->entryTypes[i] = 0;
 
         if (subMaps != NULL)
             map->subMaps[i] = subMaps[i];
@@ -90,7 +90,7 @@ void jsonToCSMap(csMap* map, char* json)
     map->keys = calloc(elements, sizeof(char*));
     map->values = calloc(elements, sizeof(char*));
     map->subMaps = calloc(elements, sizeof(csMap*));
-    map->entryType = calloc(elements, sizeof(int));
+    map->entryTypes = calloc(elements, sizeof(int));
 
     //char* jsonCopy = calloc(length + 1, sizeof(char));
     //strncpy(jsonCopy, json, length + 1);
@@ -188,10 +188,10 @@ void jsonToCSMap(csMap* map, char* json)
                         printf("-> %s goes into subMaps[%d]\n", subJson, pos);
                     csMap* tempMap = malloc(sizeof(csMap));
                     jsonToCSMap(tempMap, subJson);  //init new map and fill in values
-                    map->entryType[pos] = (subObjIsArray) ? 2 : 1;
+                    map->entryTypes[pos] = (subObjIsArray) ? 2 : 1;
                     map->subMaps[pos] = tempMap;
                     if (debug)
-                        printf("<- submap type %d into pos %d: Comes out into objLevel %d\n", map->entryType[pos], pos, objLevel);
+                        printf("<- submap type %d into pos %d: Comes out into objLevel %d\n", map->entryTypes[pos], pos, objLevel);
                     pos++;  //signifies we have completed the entry
                     free(subJson);
                 }
@@ -233,7 +233,7 @@ void jsonToCSMap(csMap* map, char* json)
                                         int numLen = 1 + (int) log10(pos);
                                         map->keys[pos] = calloc(numLen + 1, sizeof(char));
                                         snprintf(map->keys[pos], numLen + 1, "%d", pos);
-                                        //if (debug)
+                                        if (debug)
                                             printf("key = %s\n", map->keys[pos]);
                                     }
                                     int valueLength = endOfValue - startOfValue + 2;
@@ -435,13 +435,13 @@ char* csMapToJson(csMap map)
         strncat(jsonString, "\'", size);
         strncat(jsonString, map.keys[i], size);
         strncat(jsonString, "\':", size);
-        if (map.entryType[i] != 0)
+        if (map.entryTypes[i] != 0)
         {
             if (map.subMaps[i] != NULL)
             {
                 char* tempData;
 
-                if (map.entryType[i] == 1)  //if entry type is a JSON obj
+                if (map.entryTypes[i] == 1)  //if entry type is a JSON obj
                     tempData = csMapToJson(*(map.subMaps[i]));
                 else  //entry type is an array
                     tempData = csMapToArray(*(map.subMaps[i]));
@@ -450,7 +450,7 @@ char* csMapToJson(csMap map)
                 free(tempData);
             }
             else
-                strncat(jsonString, (map.entryType[i] == 1) ? "{}" : "[]", size);
+                strncat(jsonString, (map.entryTypes[i] == 1) ? "{}" : "[]", size);
         }
         else
         {
@@ -477,6 +477,11 @@ char* csMapToJson(csMap map)
     return jsonString;
 }
 
+/** \brief Converts a csMap into a JSON-style array (in string form)
+ *
+ * \param map csMap the csMap you wish to convert
+ * \return char* the string holding the JSON-style array data
+ */
 char* csMapToArray(csMap map)
 {
     if (map.entries == 0 || map.keys == NULL)
@@ -486,14 +491,14 @@ char* csMapToArray(csMap map)
     strncpy(arrString, "[", size);
     for(int i = 0; i < map.entries; i++)
     {
-        if (map.entryType[i] != 0)
+        if (map.entryTypes[i] != 0)
         {
             //print a sub-obj or array
             if (map.subMaps[i] != NULL)
             {
                 char* tempData;
 
-                if (map.entryType[i] == 1)  //if entry type is a JSON obj
+                if (map.entryTypes[i] == 1)  //if entry type is a JSON obj
                     tempData = csMapToJson(*(map.subMaps[i]));
                 else  //entry type is an array
                     tempData = csMapToArray(*(map.subMaps[i]));
@@ -502,7 +507,7 @@ char* csMapToArray(csMap map)
                 free(tempData);
             }
             else
-                strncat(arrString, (map.entryType[i] == 1) ? "{}" : "[]", size);
+                strncat(arrString, (map.entryTypes[i] == 1) ? "{}" : "[]", size);
         }
         else
             strncat(arrString, map.values[i], size);
@@ -524,7 +529,7 @@ void stringToCSMap(csMap* map, char* str)
     map->subMaps = NULL;
     int* entryIsValue = malloc(sizeof(int));
     *entryIsValue = 0;
-    map->entryType = entryIsValue;
+    map->entryTypes = entryIsValue;
     map->keys = calloc(1, sizeof(char*));
     map->values = calloc(1, sizeof(char*));
     map->keys[0] = "key";
@@ -542,10 +547,10 @@ char* traverseCSMapByKey(csMap map, char* key)
     {
         if (strcmp(map.keys[i], key) == 0)
         {
-            if (map.entryType[i] == 1)
+            if (map.entryTypes[i] == 1)
                 return csMapToJson(*(map.subMaps[i]));
 
-            if (map.entryType[i] == 2)
+            if (map.entryTypes[i] == 2)
                 return csMapToArray(*(map.subMaps[i]));
 
             return map.values[i];
@@ -566,7 +571,7 @@ csMap* traverseCSMapByKeyGetMap(csMap map, char* key)
     {
         if (strcmp(map.keys[i], key) == 0)
         {
-            if (map.entryType[i] == 0)
+            if (map.entryTypes[i] == 0)
                 stringToCSMap(map.subMaps[i], map.values[i]);
 
             return map.subMaps[i];
@@ -576,7 +581,177 @@ csMap* traverseCSMapByKeyGetMap(csMap map, char* key)
     return NULL;
 }
 
-//TODO: Make modification functions
+/** \brief Internal use only; resizes the memory blocks used by a csMap
+ *
+ * \param map - the csMap* pointing to the map to be modified
+ * \param entries - the new number of entries to have (entries < current: will lose data!)
+ * \return bool - true if succeeded, false otherwise
+ */
+bool resizeCSMap(csMap* map, int entries)
+{
+    void* newKeys = realloc(map->keys, entries * sizeof(char*));
+    if (newKeys == NULL)
+        return false;
+
+    void* newValues = realloc(map->values, entries * sizeof(char*));
+    if (newValues == NULL)
+        return false;
+
+    void* newSubMaps = realloc(map->subMaps, entries * sizeof(csMap*));
+    if (newSubMaps == NULL)
+        return false;
+
+    map->keys = (char**) newKeys;
+    map->values = (char**) newValues;
+    map->subMaps = (csMap**) newSubMaps;
+
+    map->entries = entries;
+    return true;
+}
+
+/** \brief Adds a key/value pair to a csMap.
+ *
+ * \param map - the csMap you wish to modify
+ * \param key - the key/name of the data
+ * \param value - the value of the data
+ * \return bool - true if succeeded, false if not
+ */
+bool addDataEntryToCSMap(csMap* map, char* key, char* value)
+{
+    bool success = resizeCSMap(map, map->entries + 1);
+    if (!success)
+        return false;
+
+    int newKeyLen = strlen(key);
+    map->keys[map->entries - 1] = calloc(newKeyLen + 1, sizeof(char));
+    if (map->keys[map->entries - 1] == NULL)
+        return false;
+
+    int newValueLen = strlen(value);
+    map->values[map->entries - 1] = calloc(newValueLen + 1, sizeof(char));
+    if (map->values[map->entries - 1] == NULL)
+        return false;
+
+    strncpy(map->keys[map->entries - 1], key, newKeyLen);
+    strncpy(map->values[map->entries - 1], value, newValueLen);
+
+    return true;
+}
+
+/** \brief Adds an array entry to a csMap.
+ *
+ * \param map - the csMap you wish to modify
+ * \param name - the name the array should be given
+ * \param arr - the array data in csMap format
+ * \return bool - true if succeeded, false if not
+ */
+bool addArrayEntryToCSMap(csMap* map, char* name, csMap arr)
+{
+    bool success = resizeCSMap(map, map->entries + 1);
+    if (!success)
+        return false;
+
+    int newKeyLen = strlen(name);
+    map->keys[map->entries - 1] = calloc(newKeyLen + 1, sizeof(char));
+    if (map->keys[map->entries - 1] == NULL)
+        return false;
+
+    map->subMaps[map->entries - 1] = malloc(sizeof(csMap));
+    if (map->subMaps[map->entries - 1] == NULL)
+        return false;
+
+    strncpy(map->keys[map->entries - 1], name, newKeyLen + 1);
+    memcpy(map->subMaps[map->entries - 1], &arr, sizeof(csMap));
+    map->entryTypes[map->entries - 1] = 2; //array type
+    return true;
+}
+
+/** \brief Adds an object/csMap entry to a csMap.
+ *
+ * \param map - the csMap you wish to add to
+ * \param name - the name the object should be given
+ * \param obj - the csMap object
+ * \return bool - true if succeeded, false if not
+ */
+bool addObjEntryToCSMap(csMap* map, char* name, csMap obj)
+{
+    bool success = resizeCSMap(map, map->entries + 1);
+    if (!success)
+        return false;
+
+    int newKeyLen = strlen(name);
+    map->keys[map->entries - 1] = calloc(newKeyLen + 1, sizeof(char));
+    if (map->keys[map->entries - 1] == NULL)
+        return false;
+
+    map->subMaps[map->entries - 1] = malloc(sizeof(csMap));
+    if (map->subMaps[map->entries - 1] == NULL)
+        return false;
+
+    strncpy(map->keys[map->entries - 1], name, newKeyLen + 1);
+    memcpy(map->subMaps[map->entries - 1], &obj, sizeof(csMap));
+    map->entryTypes[map->entries - 1] = 1; //object
+    return true;
+}
+
+/** \brief
+ *
+ * \param map - the csMap you wish to remove from
+ * \param key - the name or key of the entry to be removed
+ * \return bool - true if succeeded, false if not
+ */
+bool removeEntryFromCSMap(csMap* map, char* key)
+{
+    //find the entry index, then once found move it to the end
+    int entryIndex = map->entries; //impossible index; acts as success flag
+    for(int i = 0; i < map->entries; i++)
+    {
+        if (strcmp(map->keys[i], key) == 0)
+            entryIndex = i;
+
+        if (i > entryIndex)
+        {
+            //swap the elements at i and i - 1
+
+            { //swap the keys
+                char* temp = map->keys[i];
+                map->keys[i] = map->keys[i - 1];
+                map->keys[i - 1] = temp;
+            }
+            { //swap the values
+                char* temp = map->values[i];
+                map->values[i] = map->values[i - 1];
+                map->values[i - 1] = temp;
+            }
+            { //swap the sub-maps
+                csMap* temp = map->subMaps[i];
+                map->subMaps[i] = map->subMaps[i - 1];
+                map->subMaps[i - 1] = temp;
+            }
+            { //swap the sub-map flags
+                int temp = map->entryTypes[i];
+                map->entryTypes[i] = map->entryTypes[i - 1];
+                map->entryTypes[i - 1] = temp;
+            }
+        }
+    }
+
+    if (entryIndex == map->entries)
+        return false;
+
+
+    //free the data (now at the end), then reallocate to a size one smaller
+    free(map->keys[map->entries - 1]);
+    map->keys[map->entries - 1] = NULL;
+
+    free(map->values[map->entries - 1]);
+    map->values[map->entries - 1] = NULL;
+
+    destroyCSMap(map->subMaps[map->entries - 1]);
+    map->entryTypes[map->entries - 1] = 0;
+
+    return resizeCSMap(map, map->entries - 1);
+}
 
 /** \brief Destroys a csMap and frees all its memory (including sub-maps)
  * \param map - the map you wish to destroy
@@ -594,7 +769,7 @@ void destroyCSMap(csMap* map)
             map->values[i] = NULL;
 
             destroyCSMap(map->subMaps[i]);
-            map->entryType[i] = false;
+            map->entryTypes[i] = 0;
         }
         free(map->keys);
         map->keys = NULL;
@@ -605,8 +780,8 @@ void destroyCSMap(csMap* map)
         free(map->subMaps);
         map->subMaps = NULL;
 
-        free(map->entryType);
-        map->entryType = NULL;
+        free(map->entryTypes);
+        map->entryTypes = NULL;
 
         map->entries = 0;
     }

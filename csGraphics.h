@@ -29,7 +29,6 @@
 #include "SDL2/SDL_ttf.h"   //This is included for text stuff
 #include "SDL2/SDL_mixer.h" //This is included for audio
 
-
 //#defines:
 #ifndef bool
     #define bool char
@@ -168,25 +167,35 @@ bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
 
-//drawing
+//cSprite
 void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride);
+
+//c2DModel
 void initC2DModel(c2DModel* model, cSprite* sprites, int numSprites, cDoublePt position, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
 void destroyC2DModel(c2DModel* model);
 void importC2DModel(c2DModel* model, char* filepath);
 void exportC2DModel(c2DModel* model, char* filepath);
 void sortCSpritesInModel(c2DModel* model);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
+
+//cText
 void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
 void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
+
+//cResource
 void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*, cCamera), void (*cleanupRoutine)(void*), int renderLayer);
 void drawCResource(cResource* res, cCamera camera);
 void destroyCResource(cResource* res);
+
+//cCamera
 void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees);
 void destroyCCamera(cCamera* camera);
+
+//cScene
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* sprites[], int spriteCount, c2DModel* models[], int modelCount, cResource* resources[], int resCount, cText* strings[], int stringCount);
 int addSpriteToCScene(cScene* scenePtr, cSprite* sprite);
 int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool free);
@@ -198,10 +207,12 @@ int addResourceToCScene(cScene* scenePtr, cResource* resource);
 int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free);
 void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps);
+void cSceneViewer(cScene* scene);
+
+//misc
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);
-
 cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees);
 
 //file I/O
