@@ -193,7 +193,10 @@ void destroyCResource(cResource* res);
 
 //cCamera
 void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees);
+cDoublePt cWindowCoordToCameraCoord(cDoublePt pt, cCamera camera);
+cDoublePt cCameraCoordToWindowCoord(cDoublePt pt, cCamera camera);
 void destroyCCamera(cCamera* camera);
+
 
 //cScene
 void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* sprites[], int spriteCount, c2DModel* models[], int modelCount, cResource* resources[], int resCount, cText* strings[], int stringCount);

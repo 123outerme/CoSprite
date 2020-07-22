@@ -5,10 +5,9 @@
  * \param sprite - a pointer to your sprite.
  * \param texture - an SDL_Texture with your sprite's image. Pass NULL to have your texture auto-initialized
  * \param textureFilepath - a char* that holds your texture's filepath
- * \param x - x position onscreen
- * \param y - y position onscreen
- * \param w - width of your sprite
- * \param h - height of your sprite
+ * \param drawRect - draw position (in camera coordinates)
+ * \param srcClipRect - tilesheet/img position (in px)
+ * \param center - center of your sprite (in camera coordinates). NULL to be (w/2, h/2)
  * \param scale - size * this == drawn size
  * \param flip - SDL_RenderFlip value
  * \param degrees - rotation angle in degrees
@@ -108,7 +107,7 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
  *
  * \param model - a pointer to your model.
  * \param sprites - a pointer that holds your sprites.
- * \param position - x/y of your model. Width and height will be filled in automatically.
+ * \param position - x/y of your model (in camera coordinates). Width and height will be filled in automatically.
  * \param center - a pointer to a cDoublePt that is the relative center. NULL to be (w/2, h/2).
  * \param scale - size * this == drawn size
  * \param flip - SDL_RenderFlip value
@@ -345,7 +344,7 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  *
  * \param text - a pointer to your cText
  * \param string - the string you want
- * \param rect - cDoubleRect containing bounding box of text (width and height in px)
+ * \param rect - cDoubleRect containing bounding box of text (x/y in camera coordinates, w and h in px)
  * \param textColor - color of text
  * \param bgColor - color of background box
  * \param degrees - rotation angle in degrees
@@ -484,6 +483,46 @@ void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees)
     camera->rect = rect;
     camera->zoom = zoom;
     camera->degrees = degrees;
+}
+
+cDoublePt cWindowCoordToCameraCoord(cDoublePt pt, cCamera camera)
+{
+    //add back the offsets
+    pt.x += (camera.rect.x * global.windowW / camera.rect.w);
+    pt.y += (camera.rect.y * global.windowH / camera.rect.h);
+
+    //rotate the point back around
+    pt = rotatePoint(pt, (cDoublePt) {global.windowW / 2, global.windowH / 2}, -1.0 * camera.degrees);
+
+    //un-zoom the points relative to the center of the window
+    pt.x = (pt.x - global.windowW / 2.0) / camera.zoom + global.windowW / 2.0;
+    pt.y = (pt.y - global.windowH / 2.0) / camera.zoom + global.windowH / 2.0;
+
+    //convert from px to camera scaling units
+    pt.x *= camera.rect.w / global.windowW;
+    pt.y *= camera.rect.h / global.windowH;
+
+    return pt;
+}
+
+cDoublePt cCameraCoordToWindowCoord(cDoublePt pt, cCamera camera)
+{
+    //convert from camera scaling units to px
+    pt.x /= camera.rect.w / global.windowW;
+    pt.y /= camera.rect.h / global.windowH;
+
+    //zoom the points relative to the center of the window
+    pt.x = (pt.x - global.windowW / 2.0) * camera.zoom + global.windowW / 2.0;
+    pt.y = (pt.y - global.windowH / 2.0) * camera.zoom + global.windowH / 2.0;
+
+    //rotate the point around
+    pt = rotatePoint(pt, (cDoublePt) {global.windowW / 2, global.windowH / 2}, camera.degrees);
+
+    //subtract out the offsets
+    pt.x -= (camera.rect.x * global.windowW / camera.rect.w);
+    pt.y -= (camera.rect.y * global.windowH / camera.rect.h);
+
+    return pt;
 }
 
 /** \brief clears out a cCamera and its memory
