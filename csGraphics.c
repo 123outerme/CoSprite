@@ -1289,8 +1289,13 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
                 {
                     global.canDrawText = false;
                     status = 4;
+                    global.fontSize = 0;
                 }
-                global.canDrawText = true;
+                else
+                {
+                    global.canDrawText = true;
+                    global.fontSize = fontSize;
+                }
                 srand((unsigned int) time(NULL));
                 /*if (checkFile(CONFIG_FILE_NAME, SIZE_OF_SCANCODE_ARRAY))
                 {

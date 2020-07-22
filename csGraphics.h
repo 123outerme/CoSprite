@@ -54,6 +54,7 @@ typedef struct _coSprite {
     int windowsOpen;
     SDL_Renderer* mainRenderer;
     TTF_Font* mainFont;
+    int fontSize;
     int windowW;
     int windowH;
     SDL_Color colorKey;
