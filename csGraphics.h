@@ -41,8 +41,8 @@
 #endif //NULL
 #ifndef PI
     #define PI (3.14159265359879)
-    #define radToDeg(x) (180.0 * x / PI)
-    #define degToRad(x) (x * PI / 180.0)
+    #define radToDeg(x) (180.0 * (x) / PI)
+    #define degToRad(x) ((x) * PI / 180.0)
 #endif // PI
 #ifndef MAX_PATH
 #define MAX_PATH (260)

@@ -27,6 +27,8 @@ int main(int argc, char* argv[])
     int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem", true);
 
+    printf("%f\n", radToDeg(atan2(1, 0)));
+
     randomNums = (intArray) {calloc(MAX_RAND_NUMS, sizeof(int)), 0};
     int randInts[3] = {0, 0, 0};
 
@@ -36,6 +38,7 @@ int main(int argc, char* argv[])
     char* randString = calloc(10, sizeof(char));
     snprintf(randString, 9, "%d.%d.%d", randInts[0], randInts[1], randInts[2]);
 
+    /* get from webpage
     char* webString = calloc(5192, sizeof(char));
 
     int start = SDL_GetTicks();
@@ -55,9 +58,11 @@ int main(int argc, char* argv[])
 
     free(webString);
     destroyCSMap(&mappackMap);
+    */
 
-    /*bool quit = false;
-    SDL_Keycode key;
+    /* key input test
+    bool quit = false;
+    SDL_Keycode testKey;
     char filename[FILENAME_MAX - 1] = " ";
     cText fileText;
     cCamera cam;
@@ -65,23 +70,91 @@ int main(int argc, char* argv[])
     for(int i = 1; i < FILENAME_MAX; i++)
         filename[i] = '\0';
     initCCamera(&cam, (cDoubleRect) {0, 0, 20, 10}, 1.0, 0);
-    initCText(&fileText, filename, (cDoubleRect) {0, 0, global.windowW, global.windowH}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, SDL_FLIP_NONE, 0, true, 5);
+    initCText(&fileText, filename, (cDoubleRect) {0, 0, global.windowW, global.windowH}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, 0, SDL_FLIP_NONE, 0, true, 5);
     initCScene(&fileScene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &cam, NULL, 0, NULL, 0, NULL, 0, (cText*[1]) {&fileText}, 1);
     while(!quit)
     {
-        key = getKey(false);
-        handleTextInput(filename, key, FILENAME_MAX);
-        fileText.string = filename;
-        drawCScene(&fileScene, true, true);
-        if (key == SDLK_RETURN || key == SDLK_ESCAPE || key == -1)
+        testKey = getKey(false);
+        handleTextInput(filename, testKey, FILENAME_MAX);
+        updateCText(&fileText, filename);
+        drawCScene(&fileScene, true, true, NULL);
+        if (testKey == SDLK_RETURN || testKey == SDLK_ESCAPE || testKey == -1)
             quit = true;
     }
-    printf("%s\n", filename);*/
+    printf("%s\n", filename);
+    //*/
+
+    /* line collision test
+    bool done = false;
+    while(!done)
+    {
+        bool quit = false;
+        cInputState inputs;
+        cDoubleLine testLine1, testLine2;
+        int count = 0;
+
+        while(!quit)
+        {
+            SDL_RenderClear(global.mainRenderer);
+            inputs = cGetInputState(true);
+            if (inputs.isClick)
+            {
+                if (count == 0)
+                {
+                    testLine1.x1 = inputs.click.x;
+                    testLine1.y1 = inputs.click.y;
+                }
+                if (count == 1)
+                {
+                    testLine1.x2 = inputs.click.x;
+                    testLine1.y2 = inputs.click.y;
+                }
+                if (count == 2)
+                {
+                    testLine2.x1 = inputs.click.x;
+                    testLine2.y1 = inputs.click.y;
+                }
+                if (count == 3)
+                {
+                    testLine2.x2 = inputs.click.x;
+                    testLine2.y2 = inputs.click.y;
+                }
+                count++;
+                if (count == 4)
+                    quit = true;
+            }
+
+            SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0x00, 0x00, 0xFF);
+
+            if (count > 0)
+                SDL_RenderDrawPoint(global.mainRenderer, testLine1.x1, testLine1.y1);
+            if (count > 1)
+                SDL_RenderDrawLine(global.mainRenderer, testLine1.x1, testLine1.y1, testLine1.x2, testLine1.y2);
+
+            if (count > 2)
+                SDL_RenderDrawPoint(global.mainRenderer, testLine2.x1, testLine2.y1);
+
+            if (count > 3)
+                SDL_RenderDrawLine(global.mainRenderer, testLine2.x1, testLine2.y1, testLine2.x2, testLine2.y2);
+
+            SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+
+            SDL_RenderPresent(global.mainRenderer);
+        }
+        // get coords
+
+        printf("%s\n", boolToString(checkIntersection(testLine1, testLine2)));
+
+        SDL_Keycode keycode = waitForKey(true);
+        done = (keycode == SDLK_ESCAPE || keycode == -1);
+    }
+    //*/
+
     cSprite lowerSprite, upperSprite;
-    loadSprite(&lowerSprite, "assets/cb.bmp", (cDoubleRect) {50, 50, 120, 150}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
-    loadSprite(&upperSprite, "assets/cb.bmp", (cDoubleRect) {0, 0, 150, 120}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
+    loadSprite(&lowerSprite, "assets/cb.bmp", (cDoubleRect) {50 / 48.0, 50 / 48.0, 120 / 48.0, 150 / 48.0}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
+    loadSprite(&upperSprite, "assets/cb.bmp", (cDoubleRect) {0, 0, 150 / 48.0, 120 / 48.0}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     cText txt;
-    initCText(&txt, randString, (cDoubleRect) {150, 150, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, 1.0, SDL_FLIP_NONE, 0, false, 1);
+    initCText(&txt, randString, (cDoubleRect) {150 / 48.0, 150 / 48.0, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, 1.0, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     if (checkFile("exported.bin") > 0)
     {
@@ -94,7 +167,7 @@ int main(int argc, char* argv[])
     cCamera camera;
     initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0);
     cScene scene;
-    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, (cSprite*[2]) {&lowerSprite, &upperSprite}, 0, /*(c2DModel*[1]) {&model}*/NULL, 0, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
+    initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, /*(cSprite*[2]) {&lowerSprite, &upperSprite}*/ NULL, 0, /**/(c2DModel*[1]) {&model}/**/, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     add2DModelToCScene(&scene, &model);
     SDL_Keycode key;
     startTime = SDL_GetTicks();
@@ -105,41 +178,41 @@ int main(int argc, char* argv[])
         key = getKey(false);
         if (key == SDLK_w)
         {
-            model.rect.y -= 8;
+            model.rect.y -= 1;
             if (scene.modelCount == 0)
             {
-                lowerSprite.drawRect.y -= 8;
-                upperSprite.drawRect.y -= 8;
+                lowerSprite.drawRect.y -= 1;
+                upperSprite.drawRect.y -= 1;
             }
         }
 
         if (key == SDLK_s)
         {
-            model.rect.y += 8;
+            model.rect.y += 1;
             if (scene.modelCount == 0)
             {
-                lowerSprite.drawRect.y += 8;
-                upperSprite.drawRect.y += 8;
+                lowerSprite.drawRect.y += 1;
+                upperSprite.drawRect.y += 1;
             }
         }
 
         if (key == SDLK_a)
         {
-            model.rect.x -= 8;
+            model.rect.x -= 1;
             if (scene.modelCount == 0)
             {
-                lowerSprite.drawRect.x -= 8;
-                upperSprite.drawRect.x -= 8;
+                lowerSprite.drawRect.x -= 1;
+                upperSprite.drawRect.x -= 1;
             }
         }
 
         if (key == SDLK_d)
         {
-            model.rect.x += 8;
+            model.rect.x += 1;
             if (scene.modelCount == 0)
             {
-                lowerSprite.drawRect.x += 8;
-                upperSprite.drawRect.x += 8;
+                lowerSprite.drawRect.x += 1;
+                upperSprite.drawRect.x += 1;
             }
         }
 

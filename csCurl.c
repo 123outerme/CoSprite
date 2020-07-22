@@ -160,7 +160,7 @@ void csCurlPerformEasyDelete(csCurl* handle, char* url)
  * \param size - size of type returned
  * \param nmemb - number of members
  * \param userdata - any data you want to access
- * \return size_t - if not returning size * nmemb, then an error must have occured
+ * \return size_t - if not returning size * nmemb, then an error must have occurred
  */
 size_t performEasyGetCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
 {

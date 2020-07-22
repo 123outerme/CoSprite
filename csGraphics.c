@@ -3,7 +3,7 @@
 /** \brief Initializes a cSprite object. You may want to create a wrapper method.
  *
  * \param sprite - a pointer to your sprite.
- * \param texture - an SDL_Texture with your sprite's image
+ * \param texture - an SDL_Texture with your sprite's image. Pass NULL to have your texture auto-initialized
  * \param textureFilepath - a char* that holds your texture's filepath
  * \param x - x position onscreen
  * \param y - y position onscreen
@@ -18,7 +18,11 @@
  */
 void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int renderLayer)
 {
-    sprite->texture = texture;
+    if (texture)
+        sprite->texture = texture;
+    else
+        loadIMG(textureFilepath, &(sprite->texture));
+
     strncpy(sprite->textureFilepath, textureFilepath, MAX_PATH);
     sprite->id = id;
     sprite->drawRect = drawRect;
@@ -72,8 +76,8 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
 
     //uncomment the last half to have model scaling center around the center pt rather than the x/y coords
     //it takes the rect point and offsets it by the delta width / 2 (so that the sprite can scale around its visual center rather than its x/y coords
-    cDoublePt point = (cDoublePt) {sprite.drawRect.x /*- ((sprite.drawRect.w * (sprite.scale - 1)) / 2)*/,
-                                   sprite.drawRect.y /*- ((sprite.drawRect.h * (sprite.scale - 1)) / 2)*/};
+    cDoublePt point = (cDoublePt) {sprite.drawRect.x / camera.rect.w * global.windowW /*- ((sprite.drawRect.w * (sprite.scale - 1)) / 2)*/,
+                                   sprite.drawRect.y / camera.rect.h * global.windowH /*- ((sprite.drawRect.h * (sprite.scale - 1)) / 2)*/};
 
     if (!(sprite.fixed || fixedOverride))
     {  //if we are able to relate it to the camera
@@ -94,7 +98,7 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
         point.y -= (camera.rect.y * global.windowH / camera.rect.h);
     }
     SDL_RenderCopyEx(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}),
-                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * scale, .h = sprite.drawRect.h * scale}),
+                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * scale * global.windowW / camera.rect.w, .h = sprite.drawRect.h * scale * global.windowH / camera.rect.h}),
                      sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
@@ -287,11 +291,11 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                 //cDoublePt point = {(model.sprites[i].drawRect.x + model.rect.x) * scale, (model.sprites[i].drawRect.y + model.rect.y) * scale};
 
                 //uncomment the last half to have model scaling center around the center pt rather than the x/y coords
-                cDoublePt point = {model.rect.x + (model.sprites[i].drawRect.x * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
-                                   model.rect.y + (model.sprites[i].drawRect.y * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
+                cDoublePt point = {model.rect.x / camera.rect.w * global.windowW + (model.sprites[i].drawRect.x / camera.rect.w * global.windowW * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
+                                   model.rect.y / camera.rect.h * global.windowH + (model.sprites[i].drawRect.y / camera.rect.h * global.windowH * model.scale * model.sprites[i].scale) /*- (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
 
-                cDoublePt modelCtrPt = {model.rect.x + model.center.x/* - (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
-                                     model.rect.y + model.center.y/* - (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
+                cDoublePt modelCtrPt = {(model.rect.x + model.center.x) / camera.rect.w * global.windowW/* - (model.sprites[i].drawRect.w * (model.scale * model.sprites[i].scale - 1)) / 2*/,
+                                     (model.rect.y + model.center.y) / camera.rect.h * global.windowH/* - (model.sprites[i].drawRect.h * (model.scale * model.sprites[i].scale - 1)) / 2*/};
 
                 //*
                 if (!(model.sprites[i].fixed || model.fixed))
@@ -320,7 +324,7 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                 }
 
                 SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
-                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = model.sprites[i].drawRect.w * scale, .h = model.sprites[i].drawRect.h * scale}),
+                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = (model.sprites[i].drawRect.w / camera.rect.w * global.windowW) * scale, .h = (model.sprites[i].drawRect.h / camera.rect.h * global.windowH) * scale}),
                                  model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
                                  &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
                 if (update)
@@ -341,7 +345,7 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  *
  * \param text - a pointer to your cText
  * \param string - the string you want
- * \param rect - cDoubleRect containing bounding box of text
+ * \param rect - cDoubleRect containing bounding box of text (width and height in px)
  * \param textColor - color of text
  * \param bgColor - color of background box
  * \param degrees - rotation angle in degrees
@@ -417,7 +421,7 @@ void drawCText(cText text, cCamera camera, bool update)
 
     if (!text.fixed)
     {
-        cDoublePt point = rotatePoint((cDoublePt) {text.rect.x, text.rect.y}, (cDoublePt) {global.windowW / 2 - text.rect.w / 2, global.windowH / 2 - text.rect.h / 2}, camera.degrees);
+        cDoublePt point = rotatePoint((cDoublePt) {text.rect.x / camera.rect.w * global.windowW, text.rect.y / camera.rect.h * global.windowH}, (cDoublePt) {global.windowW / 2 - text.rect.w / 2, global.windowH / 2 - text.rect.h / 2}, camera.degrees);
 
         text.rect.x = point.x - (camera.rect.x * global.windowW / camera.rect.w);
         text.rect.y = point.y - (camera.rect.y * global.windowH / camera.rect.h);
