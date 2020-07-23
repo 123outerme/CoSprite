@@ -49,12 +49,17 @@
 #endif  //MAX_PATH
 
 //struct definitions:
-typedef struct _coSprite {
-    SDL_Window* window;
-    int windowsOpen;
-    SDL_Renderer* mainRenderer;
-    TTF_Font* mainFont;
+typedef struct _cFont
+{
+    TTF_Font* font;
     int fontSize;
+} cFont;
+
+typedef struct _coSprite
+{
+    SDL_Window* window;
+    SDL_Renderer* mainRenderer;
+    cFont mainFont;
     int windowW;
     int windowH;
     SDL_Color colorKey;
@@ -64,24 +69,28 @@ typedef struct _coSprite {
     int renderLayers;  /**< default 5 */
 } coSprite;
 
-typedef struct _cDoubleRect {
+typedef struct _cDoubleRect
+{
     double x;
     double y;
     double w;
     double h;
 } cDoubleRect;
 
-typedef struct _cDoublePt {
+typedef struct _cDoublePt
+{
     double x;
     double y;
 } cDoublePt;
 
-typedef struct _cDoubleVector {
+typedef struct _cDoubleVector
+{
     double magnitude;
     double degrees;
 } cDoubleVector;
 
-typedef struct _cSprite {
+typedef struct _cSprite
+{
     SDL_Texture* texture;
     char textureFilepath[MAX_PATH];
     int id;
@@ -96,7 +105,8 @@ typedef struct _cSprite {
     void* subclass;  /**< fill with any extraneous data or pointer to another struct */
 } cSprite;
 
-/*typedef struct _cCircle {
+/*typedef struct _cCircle
+{
     cDoublePt pt;
     double r;
     cDoublePt center;
@@ -107,7 +117,8 @@ typedef struct _cSprite {
     bool fixed;  / **< if true, won't be affected by camera movement * /
 } cCircle;*/
 
-typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A collection of sprites with relative coordinates
+typedef struct _c2DModel
+{  //essentially a 2D version of a wireframe model: A collection of sprites with relative coordinates
     cSprite* sprites;
     int numSprites;
     cDoubleRect rect;
@@ -120,33 +131,38 @@ typedef struct _c2DModel {  //essentially a 2D version of a wireframe model: A c
     void* subclass;
 } c2DModel;
 
-typedef struct _cText {
+typedef struct _cText
+{
     char* str;
     SDL_Texture* texture;
     cDoubleRect rect;
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     SDL_Color textColor;
     SDL_Color bgColor;
+    cFont* font;
     double scale;
     SDL_RendererFlip flip;
     double degrees;
     bool fixed;  /**< if true, won't be affected by camera movement */
 } cText;
 
-typedef struct _cCamera {
+typedef struct _cCamera
+{
     cDoubleRect rect;
     double zoom;
     double degrees;
 } cCamera;
 
-typedef struct _cResource {
+typedef struct _cResource
+{
     void* subclass;
     void (*drawingRoutine)(void*, cCamera);
     void (*cleanupRoutine)(void*);
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
 } cResource;
 
-typedef struct _cScene {
+typedef struct _cScene
+{
     SDL_Color bgColor;
     cCamera* camera;
     cSprite** sprites;
@@ -166,7 +182,7 @@ int initCoSprite();
 void closeCoSprite();
 bool loadIMG(char* imgPath, SDL_Texture** dest);
 bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
-int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended);
+int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, TTF_Font* font, bool isBlended);
 
 //cSprite
 void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
@@ -182,7 +198,7 @@ void sortCSpritesInModel(c2DModel* model);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
 
 //cText
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
 void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
@@ -213,7 +229,12 @@ void destroyCScene(cScene* scenePtr);
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps);
 void cSceneViewer(cScene* scene);
 
+//cFont
+bool initCFont(cFont* font, char* fontFilepath, int fontSize);
+void destroyCFont(cFont* font);
+
 //misc
+void cSceneViewer(cScene* scene);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);

@@ -347,12 +347,13 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  * \param rect - cDoubleRect containing bounding box of text (x/y in camera coordinates, w and h in px)
  * \param textColor - color of text
  * \param bgColor - color of background box
+ * \param font - ptr to the cFont you wish to use. Pass NULL for default (global.mainFont)
  * \param degrees - rotation angle in degrees
  * \param flip - SDL_RenderFlip value
  * \param fixed - if true, won't be affected by a scene's camera
  * \param renderLayer - 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later
  */
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
+void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
 {
     text->str = calloc(strlen(str), sizeof(char));
     if (text->str)
@@ -360,6 +361,12 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
     text->rect = rect;
     text->textColor = textColor;
     text->bgColor = bgColor;
+
+    if (font != NULL)
+        text->font = font;
+    else
+        text->font = &(global.mainFont);
+
     text->scale = scale;
     text->flip = flip;
     text->degrees = degrees;
@@ -367,7 +374,7 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
     text->renderLayer = renderLayer;
 
     //init text texture
-    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, text->font->font, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -384,7 +391,7 @@ void updateCText(cText* text, char* str)
         strcpy(text->str, str);
 
     //init text texture
-    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, text->font->font, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -418,15 +425,17 @@ void drawCText(cText text, cCamera camera, bool update)
     SDL_GetRenderDrawColor(global.mainRenderer, &r, &g, &b, &a);
     SDL_SetRenderDrawColor(global.mainRenderer, text.bgColor.r, text.bgColor.g, text.bgColor.b, text.bgColor.a);
 
+    cDoublePt point = (cDoublePt) {text.rect.x / camera.rect.w * global.windowW, text.rect.y / camera.rect.h * global.windowH};
+
     if (!text.fixed)
     {
-        cDoublePt point = rotatePoint((cDoublePt) {text.rect.x / camera.rect.w * global.windowW, text.rect.y / camera.rect.h * global.windowH}, (cDoublePt) {global.windowW / 2 - text.rect.w / 2, global.windowH / 2 - text.rect.h / 2}, camera.degrees);
+        point = rotatePoint(point, (cDoublePt) {global.windowW / 2 - text.rect.w / 2, global.windowH / 2 - text.rect.h / 2}, camera.degrees);
 
-        text.rect.x = point.x - (camera.rect.x * global.windowW / camera.rect.w);
-        text.rect.y = point.y - (camera.rect.y * global.windowH / camera.rect.h);
+        point.x = point.x - (camera.rect.x * global.windowW / camera.rect.w);
+        point.y = point.y - (camera.rect.y * global.windowH / camera.rect.h);
     }
 
-    SDL_RenderCopyEx(global.mainRenderer, text.texture, NULL, &((SDL_Rect) {text.rect.x, text.rect.y, text.rect.w * text.scale, text.rect.h * text.scale}), text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
+    SDL_RenderCopyEx(global.mainRenderer, text.texture, NULL, &((SDL_Rect) {point.x, point.y, text.rect.w * text.scale, text.rect.h * text.scale}), text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
     SDL_SetRenderDrawColor(global.mainRenderer, r, g, b, a);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
@@ -1000,6 +1009,24 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps)
         *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
 }
 
+bool initCFont(cFont* font, char* fontFilepath, int fontSize)
+{
+    loadTTFont(fontFilepath, &(font->font), fontSize);
+
+    if (font->font != NULL)
+        font->fontSize = fontSize;
+    else
+        font->fontSize = 0;
+
+    return font->font != NULL;
+}
+
+void destroyCFont(cFont* font)
+{
+    TTF_CloseFont(font->font);
+    font->fontSize = 0;
+}
+
 /** \brief Brings up a self-enclosed UI showing you what is in a cScene.
  *
  * \param scene cScene*
@@ -1026,7 +1053,7 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
     {
         SDL_Texture* txtTexture = NULL;
         int* wh;
-        wh = loadTextTexture(input, &txtTexture, maxW, color, true);
+        wh = loadTextTexture(input, &txtTexture, maxW, color, global.mainFont.font, true);
         SDL_RenderCopy(global.mainRenderer, txtTexture, &((SDL_Rect){.w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}),
                             &((SDL_Rect){.x =  x, .y = y, .w = *wh > maxW ? maxW : *wh, .h = *(wh + 1) > maxH ? maxH : *(wh + 1)}));
 
@@ -1250,7 +1277,6 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
             Mix_VolumeMusic(global.musicVolume);
         }
         global.mainRenderer = NULL;
-        global.mainFont = NULL;
         global.window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
         if (!global.window)
         {
@@ -1283,19 +1309,15 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
                 SDL_SetRenderDrawColor(global.mainRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
                 SDL_RenderSetLogicalSize(global.mainRenderer, windowWidth, windowHeight);
                 SDL_RenderClear(global.mainRenderer);
-                loadTTFont(fontPath, &global.mainFont, fontSize);
-                //loadTTFont(FONT_FILE_NAME, &smallFont, 20);
-                if (!global.mainFont)
+
+                if (!initCFont(&(global.mainFont), fontPath, fontSize))
                 {
                     global.canDrawText = false;
                     status = 4;
-                    global.fontSize = 0;
                 }
                 else
-                {
                     global.canDrawText = true;
-                    global.fontSize = fontSize;
-                }
+
                 srand((unsigned int) time(NULL));
                 /*if (checkFile(CONFIG_FILE_NAME, SIZE_OF_SCANCODE_ARRAY))
                 {
@@ -1313,8 +1335,7 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
 */
 void closeCoSprite()
 {
-    TTF_CloseFont(global.mainFont);
-    //TTF_CloseFont(smallFont);
+    destroyCFont(&(global.mainFont));
 
     SDL_DestroyWindow(global.window);
 
@@ -1392,16 +1413,17 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts)
  * \param dest - pointer to your SDL_Texture*
  * \param maxW - How wide the text can be before wrapping
  * \param color - SDL_Color struct of color to be used
+ * \param font - TTF_Font* you want used
  * \param isBlended - true always
  * \return int[2] holding {width, height}
  *
  */
-int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, bool isBlended)
+int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, TTF_Font* font, bool isBlended)
 {
     static int wh[] = {0, 0};
     SDL_Surface* txtSurface = NULL;
     if (isBlended)
-        txtSurface = TTF_RenderText_Blended_Wrapped(global.mainFont, text, color, maxW);
+        txtSurface = TTF_RenderText_Blended_Wrapped(font, text, color, maxW);
 //    else
 //        txtSurface = TTF_RenderText(smallFont, text, color, ((SDL_Color) {181, 182, 173}));
     *dest = SDL_CreateTextureFromSurface(global.mainRenderer, txtSurface);
