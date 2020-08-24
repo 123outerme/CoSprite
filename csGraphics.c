@@ -1617,7 +1617,7 @@ void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat)
 {
     logger->filepath = outFilepath;
     if (!dateTimeFormat)
-        logger->dateTimeFormat = "%b %d %y %X %Z"; //mm dd yy HH:MM:SS TMZ
+        logger->dateTimeFormat = "%b %d %Y %X %Z"; //mm dd yy HH:MM:SS TMZ
     else
         logger->dateTimeFormat = dateTimeFormat;
 }
@@ -1635,8 +1635,8 @@ void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation)
     const time_t curTime = time(NULL);
     const struct tm* curLocalTime = localtime(&curTime);
     int dateStringLen = strftime(dateString, 100, logger.dateTimeFormat, curLocalTime);
-    char* logLine = calloc(dateStringLen + strlen(entryType) + strlen(brief) + strlen(explanation) + 12, sizeof(char));
-    snprintf(logLine, strlen(brief) + strlen(explanation) +  dateStringLen + 11, "%s - %s: %s (%s)", dateString, entryType, brief, explanation);
+    char* logLine = calloc(dateStringLen + strlen(entryType) + strlen(brief) + strlen(explanation) + 14, sizeof(char));
+    snprintf(logLine, dateStringLen + strlen(entryType) + strlen(brief) + strlen(explanation) + 13, "%s - %s: %s (%s)", dateString, entryType, brief, explanation);
     appendLine(logger.filepath, logLine, true);
 
     free(logLine);

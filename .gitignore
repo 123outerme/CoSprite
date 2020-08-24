@@ -6,6 +6,7 @@
 /cs/
 /cs-bin/
 /output/
+/logs/
 *.cbp
 *.depend
 *.layout
