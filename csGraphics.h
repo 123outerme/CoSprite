@@ -13,7 +13,7 @@
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 11
     #define COSPRITE_VERSION_PATCH 1
-    #define COSPRITE_VERSION "0.11.1"
+    #define COSPRITE_VERSION "0.11.2"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -175,6 +175,12 @@ typedef struct _cScene
     int stringCount;
 } cScene;
 
+typedef struct _cLogger
+{
+    char* filepath;
+    char* dateTimeFormat;  /**< strftime() compatible time format */
+} cLogger;
+
 //function prototypes:
 
 //initialization
@@ -247,6 +253,12 @@ int appendLine(char* filePath, char* stuff, bool addNewline);
 int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool addNewline);
 char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
+//logging
+void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat);
+void logInfo(cLogger logger, char* brief, char* explanation);
+void logWarn(cLogger logger, char* brief, char* explanation);
+void logError(cLogger logger, char* brief, char* explanation);
+void destroyCLogger(cLogger* logger);
 
 //global variable declarations:
 coSprite global;
