@@ -11,9 +11,9 @@
 
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
-    #define COSPRITE_VERSION_MINOR 11
-    #define COSPRITE_VERSION_PATCH 1
-    #define COSPRITE_VERSION "0.11.2"
+    #define COSPRITE_VERSION_MINOR 12
+    #define COSPRITE_VERSION_PATCH 0
+    #define COSPRITE_VERSION "0.12.0"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -232,7 +232,7 @@ int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free);
 int addResourceToCScene(cScene* scenePtr, cResource* resource);
 int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free);
 void destroyCScene(cScene* scenePtr);
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps);
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap);
 void cSceneViewer(cScene* scene);
 
 //cFont

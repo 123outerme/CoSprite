@@ -945,10 +945,13 @@ void destroyCScene(cScene* scenePtr)
  *
  * \param scenePtr - pointer to your cScene
  * \param redraw - if nonzero, will update the screen
+ * \param fps - if not NULL, will fill the int pointed to with the FPS count
+ * \param fpsCap - if not 0, will limit the FPS to the amount set (approx.)
  */
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps)
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap)
 { //TODO: Speed this up
     static int frame = 0;
+    static int lastFrame = 0;
 
     SDL_SetRenderDrawColor(global.mainRenderer, scenePtr->bgColor.r, scenePtr->bgColor.g, scenePtr->bgColor.b, scenePtr->bgColor.a);
     if (clearScreen)
@@ -1006,7 +1009,20 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps)
     }
 
     if (fps != NULL)
+    {
         *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
+
+    }
+
+    if (fpsCap > 0)
+    {
+        int sleepFor = 0;
+
+        if ((sleepFor = (1000 / fpsCap) - (SDL_GetTicks() - lastFrame)) > 0)
+            SDL_Delay(sleepFor);  //FPS limiter; rests for (X - time spent) ms per frame, effectively making each frame run for ~X ms, or (1000 / X) FPS
+
+        lastFrame = SDL_GetTicks();
+    }
 }
 
 bool initCFont(cFont* font, char* fontFilepath, int fontSize)
