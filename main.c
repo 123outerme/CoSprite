@@ -18,6 +18,8 @@ intArray randomNums;
 int getRandIntPlace = 0;  //please don't modify
 const int MAX_RAND_NUMS = 15;
 
+cLogger testLogger;
+
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void));
 
@@ -27,7 +29,8 @@ int main(int argc, char* argv[])
     int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem", true);
 
-    printf("%f\n", radToDeg(atan2(1, 0)));
+    initCLogger(&testLogger, "./logs/log.txt", NULL);
+    cLogEvent(testLogger, "TEST", "Testing logs", "Initialized");
 
     randomNums = (intArray) {calloc(MAX_RAND_NUMS, sizeof(int)), 0};
     int randInts[3] = {0, 0, 0};
@@ -296,6 +299,8 @@ int main(int argc, char* argv[])
     free(randomNums.arr);
     exportC2DModel(&model, "exported.bin");
     destroyCScene(&scene);
+    destroyCLogger(&testLogger);
+
     closeCoSprite();
     closeCoSpriteCurl();
     return code;

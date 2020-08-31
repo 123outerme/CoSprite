@@ -1615,14 +1615,22 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output)
  */
 void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat)
 {
-    logger->filepath = outFilepath;
+    logger->filepath = calloc(strlen(outFilepath) + 1, sizeof(char));
+    strncpy(logger->filepath, outFilepath, strlen(outFilepath));
+
     if (!dateTimeFormat)
-        logger->dateTimeFormat = "%b %d %Y %X %Z"; //mm dd yy HH:MM:SS TMZ
+    {
+        logger->dateTimeFormat = calloc(16, sizeof(char));
+        strncpy(logger->dateTimeFormat, "%b %d %Y %X %Z", 15); //mm dd yy HH:MM:SS TMZ
+    }
     else
-        logger->dateTimeFormat = dateTimeFormat;
+    {
+        logger->dateTimeFormat = calloc(strlen(dateTimeFormat) + 1, sizeof(char));
+        strncpy(logger->dateTimeFormat, dateTimeFormat, strlen(dateTimeFormat));
+    }
 }
 
-/** \brief
+/** \brief Logs an event of any type.
  *
  * \param logger cLogger
  * \param entryType char* string that represents type of entry (info, warn, error, etc.)
@@ -1641,4 +1649,14 @@ void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation)
 
     free(logLine);
     free(dateString);
+}
+
+/** \brief Destroys a cLogger
+ *
+ * \param logger cLogger*
+ */
+void destroyCLogger(cLogger* logger)
+{
+    free(logger->filepath);
+    free(logger->dateTimeFormat);
 }

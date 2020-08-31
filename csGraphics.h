@@ -255,9 +255,7 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
 //logging
 void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat);
-void logInfo(cLogger logger, char* brief, char* explanation);
-void logWarn(cLogger logger, char* brief, char* explanation);
-void logError(cLogger logger, char* brief, char* explanation);
+void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation);
 void destroyCLogger(cLogger* logger);
 
 //global variable declarations:
