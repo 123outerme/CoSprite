@@ -29,7 +29,9 @@ typedef struct _cInputState
 {
     const Uint8* keyStates;
     SDL_MouseButtonEvent click;
-    bool isClick;  /**< If true, then no mouse input */
+    SDL_MouseMotionEvent motion;
+    SDL_Keysym keysym;
+    bool isClick;  /**< If true, then there was no mouse input */
     bool quitInput;  /**< True if given any sort of quit-like input */
 } cInputState;
 
@@ -38,7 +40,8 @@ cInputState cGetInputState(bool useMouse);
 SDL_Keycode getKey(bool useMouse);
 SDL_Keycode waitForKey(bool useMouse);
 bool setKey(SDL_Scancode key, int keyslot);
-void handleTextInput(char* text, SDL_Keycode key, int maxChar);
+void handleTextInput(char* text, cInputState state, size_t maxChar);
+void handleTextKeycodeInput(char* text, SDL_Keycode key, size_t maxChar);
 
 //global variable declarations:
 SDL_Scancode keymaps[MAX_KEYMAPS];

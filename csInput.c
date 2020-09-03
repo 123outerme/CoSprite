@@ -11,7 +11,8 @@ cInputState cGetInputState(bool useMouse)
 {
     SDL_Event e;
 
-    cInputState state = {SDL_GetKeyboardState(NULL), (SDL_MouseButtonEvent) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, false, false};
+    cInputState state = (cInputState){SDL_GetKeyboardState(NULL), (SDL_MouseButtonEvent) {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, (SDL_MouseMotionEvent) {0, 0, 0, 0, 0, -1, -1, 0, 0},
+     (SDL_Keysym) {SDL_SCANCODE_UNKNOWN, SDLK_UNKNOWN, 0, 0}, false, false};
 
     while(SDL_PollEvent(&e) != 0)
     {
@@ -21,11 +22,19 @@ cInputState cGetInputState(bool useMouse)
             state.quitInput = true;
         else
         {
-            if (e.type == SDL_MOUSEBUTTONDOWN && useMouse)
+            if (useMouse)
             {
-                state.isClick = true;
-                state.click = e.button;
+                state.motion = e.motion;
+                if (e.type == SDL_MOUSEBUTTONDOWN)
+                {
+                    state.isClick = true;
+                    state.click = e.button;
+                }
             }
+
+            if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)
+                state.keysym = e.key.keysym;
+
         }
     }
     return state;
@@ -114,7 +123,66 @@ bool setKey(SDL_Scancode key, int keyslot)
     return !conflict;
 }
 
-void handleTextInput(char* text, SDL_Keycode key, int maxChar)
+void handleTextInput(char* text, cInputState state, size_t maxChar)
+{
+    int length = strlen(text);
+    bool shift = ((state.keysym.mod & KMOD_LSHIFT) != 0) || ((state.keysym.mod & KMOD_RSHIFT) != 0) || ((state.keysym.mod & KMOD_CAPS) != 0);
+
+    if (state.keysym.sym >= SDLK_SPACE && state.keysym.sym <= SDLK_z && length < maxChar)
+    {
+        if (shift && (state.keysym.sym < SDLK_a || state.keysym.sym > SDLK_z) && state.keysym.sym != SDLK_SPACE)  //top row, hardcoded
+        {
+            char temp = '_';
+            if (state.keysym.sym == SDLK_BACKQUOTE)
+                temp = '~';
+            if (state.keysym.sym == SDLK_1)
+                temp = '!';
+            if (state.keysym.sym == SDLK_2)
+                temp = '@';
+            if (state.keysym.sym == SDLK_3)
+                temp = '#';
+            if (state.keysym.sym == SDLK_4)
+                temp = '$';
+            if (state.keysym.sym == SDLK_5)
+                temp = '%';
+            if (state.keysym.sym == SDLK_6)
+                temp = '^';
+            if (state.keysym.sym == SDLK_7)
+                temp = '&';
+            if (state.keysym.sym == SDLK_8)
+                temp = '*';
+            if (state.keysym.sym == SDLK_9)
+                temp = '(';
+            if (state.keysym.sym == SDLK_0)
+                temp = ')';
+            if (state.keysym.sym == SDLK_MINUS)
+                temp = '_';
+            if (state.keysym.sym == SDLK_EQUALS)
+                temp = '+';
+
+            if (state.keysym.sym == SDLK_BACKSLASH)
+                temp = '|';
+            if (state.keysym.sym == SDLK_SEMICOLON)
+                temp = ':';
+            if (state.keysym.sym == SDLK_QUOTE)
+                temp = '\"';
+            if (state.keysym.sym == SDLK_SLASH)
+                temp = '?';
+            if (state.keysym.sym == SDLK_COMMA)
+                temp = '<';
+            if (state.keysym.sym == SDLK_PERIOD)
+                temp = '>';
+            text[length] = temp;
+        }
+        else
+            text[length] = (shift ? toupper(state.keysym.sym) : state.keysym.sym);
+    }
+
+    if (state.keysym.sym == SDLK_BACKSPACE && length > 0)
+        text[length - 1] = '\0';
+}
+
+void handleTextKeycodeInput(char* text, SDL_Keycode key, size_t maxChar)
 {
     static bool shift = false;
     static int namePos = 0;
@@ -165,11 +233,17 @@ void handleTextInput(char* text, SDL_Keycode key, int maxChar)
             text[namePos++] = temp;
         }
         else
-        text[namePos++] = (shift ? toupper(key) : key);
+            text[namePos++] = (shift ? toupper(key) : key);
     }
     if (key == SDLK_LSHIFT || key == SDLK_RSHIFT)
         shift = !shift;
 
     if (key == SDLK_BACKSPACE && namePos > 0)
         text[--namePos] = ' ';
+
+    if (key == SDLK_RETURN)
+    {
+        shift = false;
+        namePos = 0;
+    }
 }

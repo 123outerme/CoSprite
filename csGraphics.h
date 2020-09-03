@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 12
-    #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.12.0"
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.12.1"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -136,6 +136,7 @@ typedef struct _cText
     char* str;
     SDL_Texture* texture;
     cDoubleRect rect;
+    double maxW;
     int renderLayer; /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     SDL_Color textColor;
     SDL_Color bgColor;
@@ -204,7 +205,7 @@ void sortCSpritesInModel(c2DModel* model);
 void drawC2DModel(c2DModel model, cCamera camera, bool update);
 
 //cText
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
+void initCText(cText* text, char* str, cDoubleRect rect, double maxW, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int drawPriority);
 void updateCText(cText* text, char* str);
 void destroyCText(cText* text);
 void drawCText(cText text, cCamera camera, bool update);
@@ -242,9 +243,11 @@ void destroyCFont(cFont* font);
 //misc
 void cSceneViewer(cScene* scene);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
+cDoubleVector checkCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2);
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);
 cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees);
+cDoubleVector addCDoubleVectors(cDoubleVector vector1, cDoubleVector vector2);
 
 //file I/O
 int createFile(char* filePath);

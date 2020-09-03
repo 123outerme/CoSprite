@@ -353,12 +353,13 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
  * \param fixed - if true, won't be affected by a scene's camera
  * \param renderLayer - 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later
  */
-void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
+void initCText(cText* text, char* str, cDoubleRect rect, double maxW, SDL_Color textColor, SDL_Color bgColor, cFont* font, double scale, SDL_RendererFlip flip, double degrees, bool fixed, int renderLayer)
 {
-    text->str = calloc(strlen(str), sizeof(char));
+    text->str = calloc(strlen(str) + 1, sizeof(char));
     if (text->str)
-        strcpy(text->str, str);
+        strncpy(text->str, str, strlen(str));
     text->rect = rect;
+    text->maxW = maxW;
     text->textColor = textColor;
     text->bgColor = bgColor;
 
@@ -374,7 +375,7 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
     text->renderLayer = renderLayer;
 
     //init text texture
-    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, text->font->font, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->maxW, text->textColor, text->font->font, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -386,12 +387,25 @@ void initCText(cText* text, char* str, cDoubleRect rect, SDL_Color textColor, SD
  */
 void updateCText(cText* text, char* str)
 {
-    text->str = calloc(strlen(str), sizeof(char));
-    if (text->str)
-        strcpy(text->str, str);
+    if (strlen(str) > strlen(text->str))
+    {
+        free(text->str);
+        char* temp = calloc(strlen(str) + 1, sizeof(char));
+
+        if (temp != NULL)
+        {
+            text->str = temp;
+            strncpy(text->str, str, strlen(str));
+        }
+        else
+        {
+            //oop
+            printf("updateCText() error: cannot realloc string\n");
+        }
+    }
 
     //init text texture
-    int* wh = loadTextTexture(text->str, &text->texture, text->rect.w, text->textColor, text->font->font, true);
+    int* wh = loadTextTexture(text->str, &text->texture, text->maxW, text->textColor, text->font->font, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
 }
@@ -405,6 +419,7 @@ void destroyCText(cText* text)
     free(text->str);
     text->str = NULL;
     text->rect = (cDoubleRect) {0, 0, 0, 0};
+    text->maxW = 0;
     text->textColor = (SDL_Color) {0, 0, 0, 0};
     text->bgColor = (SDL_Color) {0, 0, 0, 0};
     text->scale = 1.0;
@@ -946,7 +961,7 @@ void destroyCScene(cScene* scenePtr)
  * \param scenePtr - pointer to your cScene
  * \param redraw - if nonzero, will update the screen
  * \param fps - if not NULL, will fill the int pointed to with the FPS count
- * \param fpsCap - if not 0, will limit the FPS to the amount set (approx.)
+ * \param fpsCap - if not 0 and `fps` is not NULL, will limit the FPS to the amount set (approx.)
  */
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap)
 { //TODO: Speed this up
@@ -1009,10 +1024,7 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int f
     }
 
     if (fps != NULL)
-    {
         *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
-
-    }
 
     if (fpsCap > 0)
     {
@@ -1077,6 +1089,87 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
             SDL_RenderPresent(global.mainRenderer);
         SDL_DestroyTexture(txtTexture);
     }
+}
+
+cDoubleVector checkCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2)
+{
+
+    cDoublePt corners1[4] = {(cDoublePt) {rect1.x, rect1.y}, (cDoublePt) {rect1.x + rect1.w, rect1.y}, (cDoublePt) {rect1.x + rect1.w, rect1.y + rect1.h}, (cDoublePt) {rect1.x, rect1.y + rect1.h}};
+
+    cDoublePt corners2[4] = {(cDoublePt) {rect2.x, rect2.y}, (cDoublePt) {rect2.x + rect2.w, rect2.y}, (cDoublePt) {rect2.x + rect2.w, rect2.y + rect2.h}, (cDoublePt) {rect2.x, rect2.y + rect2.h}};
+
+
+    double normals[2] = {0, 90};
+    //since we know we're dealing with unrotated rectangles, the normals can just be 0 and 90 degrees
+    cDoubleVector minTranslationVector = (cDoubleVector) {0, 0};
+
+    for(int i = 0; i < 2; i++)
+    {
+        double min1 = sqrt(pow(corners1[0].x, 2) + pow(corners1[0].y, 2)) * fabs(cos(fabs(degToRad(normals[i]) - atan2(corners1[0].y, corners1[0].x))));
+        double max1 = min1;
+        for(int x = 1; x < 4; x++)
+        {
+            //sqrt(x^2 + y^2) * cos(theta);  //this is the projection of the selected corner onto a plane with some angle `theta` between them
+            //essentially we get the magnitude of a vector from 0,0 to x,y (call it V) then multiply by the cosine of (the normal's angle - the angle of V)
+            double newVal = sqrt(pow(corners1[x].x, 2) + pow(corners1[x].y, 2)) * fabs(cos(fabs(degToRad(normals[i]) - atan2(corners1[x].y, corners1[x].x))));
+            if (newVal > max1)
+            {
+                max1 = newVal;
+                //firstPts[1] = x;
+            }
+            if (newVal < min1)
+            {
+                min1 = newVal;
+                //firstPts[0] = x;
+            }
+            //and we need to determine the minimum (closest to axis origin) and maximum (farther from axis origin)
+            //by looping through each point, finding the projected point
+
+        }
+
+        double min2 = sqrt(pow(corners2[0].x, 2) + pow(corners2[0].y, 2)) * fabs(cos(fabs(degToRad(normals[i]) - atan2(corners2[0].y, corners2[0].x))));
+        double max2 = min2;
+        for(int x = 1; x < 4; x++)
+        {
+            double newVal = sqrt(pow(corners2[x].x, 2) + pow(corners2[x].y, 2)) * fabs(cos(fabs(degToRad(normals[i]) - atan2(corners2[x].y, corners2[x].x))));
+            if (newVal > max2)
+            {
+                max2 = newVal;
+                //secondPts[1] = x;
+            }
+            if (newVal < min2)
+            {
+                min2 = newVal;
+                //secondPts[0] = x;
+            }
+        }
+        //and the same thing for the second object as well
+
+        //printf("%f or %f\n", min2 - max1, min1 - max2);
+        if (min2 >= max1 || min1 >= max2)
+        {
+            minTranslationVector = (cDoubleVector) {0, 0};
+            break;
+        }
+        else
+        {
+            double overlap = max1 - min2, o2 = max2 - min1, degrees = normals[i];
+            if (o2 < overlap)
+                overlap = o2;
+            if (min1 < min2)
+                degrees += 180;
+
+            if (fabs(overlap) < minTranslationVector.magnitude || minTranslationVector.magnitude == 0)
+            {
+                minTranslationVector = (cDoubleVector) {overlap, degrees};
+            }
+        }
+        //check for intersections of the two projected lines
+        //  if not found, return false (because according to SAT if one gap in projections is found, there's a separating axis there)
+        //  else continue
+    }
+
+    return minTranslationVector;
 }
 
 /** \brief uses SAT to check whether one sprite is colliding onscreen with another
@@ -1479,6 +1572,21 @@ cDoublePt rotatePoint(cDoublePt pt, cDoublePt center, double degrees)
     pt.y = ynew + center.y;
 
     return pt;
+}
+
+
+cDoubleVector addCDoubleVectors(cDoubleVector vector1, cDoubleVector vector2)
+{
+    cDoubleVector result = {0, 0};
+
+    double sumX = vector1.magnitude * cos(degToRad(vector1.degrees)) + vector2.magnitude * cos(degToRad(vector2.degrees));
+
+    double sumY = vector1.magnitude * sin(degToRad(vector1.degrees)) + vector2.magnitude * sin(degToRad(vector2.degrees));
+
+    result.magnitude = sqrt(pow(sumX, 2) + pow(sumY, 2));
+    result.degrees = radToDeg(atan2(sumY, sumX));
+
+    return result;
 }
 
 /** \brief Creates a file, or clears contents if it exists.
