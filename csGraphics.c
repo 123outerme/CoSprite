@@ -364,7 +364,10 @@ void initCText(cText* text, char* str, cDoubleRect rect, double maxW, SDL_Color 
     text->bgColor = bgColor;
 
     if (font != NULL)
-        text->font = font;
+    {
+        text->font = malloc(sizeof(cFont));
+        initCFont(text->font, font->filepath, font->fontSize);
+    }
     else
         text->font = &(global.mainFont);
 
@@ -387,22 +390,24 @@ void initCText(cText* text, char* str, cDoubleRect rect, double maxW, SDL_Color 
  */
 void updateCText(cText* text, char* str)
 {
-    if (strlen(str) > strlen(text->str))
+    int safeLen = strlen(text->str);
+    if (strlen(str) > safeLen)
     {
-        free(text->str);
         char* temp = calloc(strlen(str) + 1, sizeof(char));
 
         if (temp != NULL)
         {
+            free(text->str);
             text->str = temp;
-            strncpy(text->str, str, strlen(str));
+            safeLen = strlen(str);
         }
         else
         {
             //oop
-            printf("updateCText() error: cannot realloc string\n");
+            printf("updateCText() error: cannot calloc new string\n");
         }
     }
+    strncpy(text->str, str, safeLen);
 
     //init text texture
     int* wh = loadTextTexture(text->str, &text->texture, text->maxW, text->textColor, text->font->font, true);
@@ -961,7 +966,7 @@ void destroyCScene(cScene* scenePtr)
  * \param scenePtr - pointer to your cScene
  * \param redraw - if nonzero, will update the screen
  * \param fps - if not NULL, will fill the int pointed to with the FPS count
- * \param fpsCap - if not 0 and `fps` is not NULL, will limit the FPS to the amount set (approx.)
+ * \param fpsCap - if not 0, will limit the FPS to the amount set (approx.)
  */
 void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap)
 { //TODO: Speed this up
@@ -1041,6 +1046,10 @@ bool initCFont(cFont* font, char* fontFilepath, int fontSize)
 {
     loadTTFont(fontFilepath, &(font->font), fontSize);
 
+    font->filepath = calloc(strlen(fontFilepath) + 2, sizeof(char));
+    if (font->filepath != NULL)
+        strncpy(font->filepath, fontFilepath, strlen(fontFilepath) + 1);
+
     if (font->font != NULL)
         font->fontSize = fontSize;
     else
@@ -1053,6 +1062,9 @@ void destroyCFont(cFont* font)
 {
     TTF_CloseFont(font->font);
     font->fontSize = 0;
+
+    if (font->filepath != NULL)
+        free(font->filepath);
 }
 
 /** \brief Brings up a self-enclosed UI showing you what is in a cScene.

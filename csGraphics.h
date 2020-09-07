@@ -53,6 +53,7 @@ typedef struct _cFont
 {
     TTF_Font* font;
     int fontSize;
+    char* filepath;
 } cFont;
 
 typedef struct _coSprite
