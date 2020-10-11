@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
     loadSprite(&lowerSprite, "assets/cb.bmp", (cDoubleRect) {50 / 48.0, 50 / 48.0, 120 / 48.0, 150 / 48.0}, (cDoubleRect) {0, 0, 120, 150}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 4);
     loadSprite(&upperSprite, "assets/cb.bmp", (cDoubleRect) {0, 0, 150 / 48.0, 120 / 48.0}, (cDoubleRect) {0, 0, 150, 120}, NULL, 1.0, SDL_FLIP_NONE, 0, false, NULL, 5);
     cText txt;
-    initCText(&txt, randString, (cDoubleRect) {150 / 48.0, 150 / 48.0, 300, 300}, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0x00}, NULL, 1.0, SDL_FLIP_NONE, 0, false, 1);
+    initCText(&txt, randString, (cDoubleRect) {150 / 48.0, 150 / 48.0, 300, 300}, 300, (SDL_Color) {0, 0, 0, 0xFF}, (SDL_Color) {0xFF, 0, 0, 0xFF}, NULL, 1.0, SDL_FLIP_NONE, 0, false, 1);
     c2DModel model;
     if (checkFile("exported.bin") > 0)
     {

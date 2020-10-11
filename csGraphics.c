@@ -409,7 +409,8 @@ void updateCText(cText* text, char* str)
     }
     strncpy(text->str, str, safeLen);
 
-    //init text texture
+    //init new text texture
+    SDL_DestroyTexture(text->texture);
     int* wh = loadTextTexture(text->str, &text->texture, text->maxW, text->textColor, text->font->font, true);
     text->rect.w = wh[0];
     text->rect.h = wh[1];
@@ -443,7 +444,7 @@ void drawCText(cText text, cCamera camera, bool update)
 {
     Uint8 r, g, b, a;
     SDL_GetRenderDrawColor(global.mainRenderer, &r, &g, &b, &a);
-    SDL_SetRenderDrawColor(global.mainRenderer, text.bgColor.r, text.bgColor.g, text.bgColor.b, text.bgColor.a);
+    SDL_SetRenderDrawColor(global.mainRenderer, text.textColor.r, text.textColor.g, text.textColor.b, text.textColor.a);
 
     cDoublePt point = (cDoublePt) {text.rect.x / camera.rect.w * global.windowW, text.rect.y / camera.rect.h * global.windowH};
 
@@ -656,7 +657,6 @@ int addSpriteToCScene(cScene* scenePtr, cSprite* sprite)
 
     if (tempSprites != NULL)
     {
-        free(scenePtr->sprites);
         scenePtr->sprites = tempSprites;
         scenePtr->sprites[scenePtr->spriteCount] = sprite;
         scenePtr->spriteCount++;
@@ -727,8 +727,6 @@ int add2DModelToCScene(cScene* scenePtr, c2DModel* model)
 
     if (tempModels != NULL)
     {
-
-        free(scenePtr->models);
         scenePtr->models = tempModels;
         scenePtr->models[scenePtr->modelCount] = model;
         scenePtr->modelCount++;
@@ -797,7 +795,6 @@ int addTextToCScene(cScene* scenePtr, cText* text)
 
     if (tempTexts != NULL)
     {
-        free(scenePtr->strings);
         scenePtr->strings = tempTexts;
         scenePtr->strings[scenePtr->modelCount] = text;
         scenePtr->stringCount++;
@@ -866,13 +863,13 @@ int addResourceToCScene(cScene* scenePtr, cResource* resource)
         tempResources = realloc(scenePtr->resources, (scenePtr->resCount + 1) * sizeof(cResource*));
     if (tempResources != NULL)
     {
-        free(scenePtr->resources);
         scenePtr->resources = tempResources;
-        scenePtr->resources[scenePtr->resCount++] = resource;
+        scenePtr->resources[scenePtr->resCount] = resource;
+        scenePtr->resCount++;
     }
     else
     {
-        printf("addresourceToCScene: Failed to resize resources array (attempted size %d)", scenePtr->resCount--);
+        printf("addResourceToCScene: Failed to resize resources array (attempted size %d)", scenePtr->resCount--);
         success = false;
     }
     return success;
@@ -1033,9 +1030,9 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int f
 
     if (fpsCap > 0)
     {
-        int sleepFor = 0;
+        int sleepFor = (1000 / fpsCap) - (SDL_GetTicks() - lastFrame);
 
-        if ((sleepFor = (1000 / fpsCap) - (SDL_GetTicks() - lastFrame)) > 0)
+        if (sleepFor > 0)
             SDL_Delay(sleepFor);  //FPS limiter; rests for (X - time spent) ms per frame, effectively making each frame run for ~X ms, or (1000 / X) FPS
 
         lastFrame = SDL_GetTicks();
@@ -1546,8 +1543,7 @@ int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, 
     SDL_Surface* txtSurface = NULL;
     if (isBlended)
         txtSurface = TTF_RenderText_Blended_Wrapped(font, text, color, maxW);
-//    else
-//        txtSurface = TTF_RenderText(smallFont, text, color, ((SDL_Color) {181, 182, 173}));
+
     *dest = SDL_CreateTextureFromSurface(global.mainRenderer, txtSurface);
     if (!*dest)
     {
