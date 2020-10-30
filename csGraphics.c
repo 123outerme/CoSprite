@@ -323,7 +323,8 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                 }
 
                 SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
-                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .w = (model.sprites[i].drawRect.w / camera.rect.w * global.windowW) * scale, .h = (model.sprites[i].drawRect.h / camera.rect.h * global.windowH) * scale}),
+                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/,
+                                               .w = (model.sprites[i].drawRect.w / camera.rect.w * global.windowW) * scale, .h = (model.sprites[i].drawRect.h / camera.rect.h * global.windowH) * scale}),
                                  model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
                                  &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
                 if (update)
@@ -649,8 +650,8 @@ void initCScene(cScene* scenePtr, SDL_Color bgColor, cCamera* camera, cSprite* s
 int addSpriteToCScene(cScene* scenePtr, cSprite* sprite)
 {
     bool success = true;
-    cSprite** tempSprites;
-    if (scenePtr->modelCount == 0)
+    cSprite** tempSprites = NULL;
+    if (scenePtr->spriteCount == 0)
         tempSprites = calloc(scenePtr->spriteCount + 1, sizeof(cSprite*));
     else
         tempSprites = realloc(scenePtr->sprites, (scenePtr->spriteCount + 1) * sizeof(cSprite*));
@@ -681,7 +682,7 @@ int addSpriteToCScene(cScene* scenePtr, cSprite* sprite)
  */
 int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool free)
 {
-    bool success = true;
+    bool success = false;
     if (sprite != NULL)
     {
         index = -1;
@@ -691,11 +692,12 @@ int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool fr
                 index = i;
         }
     }
-    if (free)
-        destroyCSprite(scenePtr->sprites[index]);
 
     if (index >= 0)
     {
+        if (free)
+            destroyCSprite(scenePtr->sprites[index]);
+
         scenePtr->sprites[index] = NULL;
         for(int i = index; i < scenePtr->spriteCount - 1; i++)
             scenePtr->sprites[i] = scenePtr->sprites[i + 1];
@@ -759,11 +761,12 @@ int remove2DModelFromCScene(cScene* scenePtr, c2DModel* model, int index, bool f
                 index = i;
         }
     }
-    if (free)
-        destroyC2DModel(scenePtr->models[index]);
 
     if (index >= 0)
     {
+        if (free)
+            destroyC2DModel(scenePtr->models[index]);
+
         scenePtr->models[index] = NULL;
         for(int i = index; i < scenePtr->modelCount - 1; i++)
             scenePtr->models[i] = scenePtr->models[i + 1];
@@ -827,11 +830,12 @@ int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free)
                 index = i;
         }
     }
-    if (free)
-        destroyCText(scenePtr->strings[index]);
 
     if (index >= 0)
     {
+        if (free)
+            destroyCText(scenePtr->strings[index]);
+
         scenePtr->strings[index] = NULL;
         for(int i = index; i < scenePtr->stringCount - 1; i++)
                 scenePtr->strings[i] = scenePtr->strings[i + 1];
@@ -895,11 +899,12 @@ int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, b
                 index = i;
         }
     }
-    if (free)
-        destroyCResource(scenePtr->resources[index]);
 
     if (index >= 0)
     {
+        if (free)
+            destroyCResource(scenePtr->resources[index]);
+
         scenePtr->resources[index] = NULL;
         for(int i = index; i < scenePtr->resCount - 1; i++)
             scenePtr->resources[i] = scenePtr->resources[i + 1];
