@@ -3,6 +3,7 @@
 #include "csUtility.h"
 #include "csCurl.h"
 #include "csMap.h"
+#include "csAudio.h"
 
 typedef struct _intArray
 {
@@ -22,12 +23,21 @@ cLogger testLogger;
 
 void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect clipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int priority);
 int cMenu(cSprite cursor, char* title, char** optionsArray, const int options, int curSelect, SDL_Color bgColor, SDL_Color titleColorUnder, SDL_Color titleColorOver, SDL_Color textColor, bool border, void (*extraDrawing)(void));
+void testMusicCallback();
 
 int main(int argc, char* argv[])
 {
     argv[argc - 1] = " ";  //just to get rid of warnings
     int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem", true);
+    initCoSpriteAudio(32);
+    csSoundFX testSound;
+    initCSSoundFX(&testSound, "./assets/audio/gateway1.ogg");
+    playCSSoundFX(&testSound, 0);
+
+    csMusic testMusic;
+    initCSMusic(&testMusic, "./assets/audio/mainTheme.mp3", testMusicCallback);
+    playCSMusic(&testMusic, 0);
 
     initCLogger(&testLogger, "./logs/log.txt", NULL);
     cLogEvent(testLogger, "TEST", "Testing logs", "Initialized");
@@ -171,7 +181,7 @@ int main(int argc, char* argv[])
     initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, /*(cSprite*[2]) {&lowerSprite, &upperSprite}*/ NULL, 0, /**/(c2DModel*[1]) {&model}/**/, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
-    add2DModelToCScene(&scene, &model);
+    //add2DModelToCScene(&scene, &model);
     SDL_Keycode key;
     startTime = SDL_GetTicks();
     int framerate = 0;
@@ -301,8 +311,13 @@ int main(int argc, char* argv[])
     destroyCScene(&scene);
     destroyCLogger(&testLogger);
 
-    closeCoSprite();
+    destroyCSSoundFX(&testSound);
+    destroyCSMusic(&testMusic);
+
+    closeCoSpriteAudio();
     closeCoSpriteCurl();
+    closeCoSprite();
+
     return code;
 }
 
@@ -489,4 +504,9 @@ size_t randIntCallback(char* ptr, size_t size, size_t nmemb, void* userdata)
         subString = strtok(NULL, "\n");
     }
     return size * nmemb;
+}
+
+void testMusicCallback()
+{
+    printf("Music finished.\n");
 }

@@ -96,9 +96,9 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
         point.x -= (camera.rect.x * global.windowW / camera.rect.w);
         point.y -= (camera.rect.y * global.windowH / camera.rect.h);
     }
-    SDL_RenderCopyEx(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}),
-                     &((SDL_Rect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * scale * global.windowW / camera.rect.w, .h = sprite.drawRect.h * scale * global.windowH / camera.rect.h}),
-                     sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_Point) {0, 0}), sprite.flip);
+    SDL_RenderCopyExF(global.mainRenderer, sprite.texture, &((SDL_Rect) {sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w, sprite.srcClipRect.h}),
+                     &((SDL_FRect) {.x = point.x /*- ((sprite.drawRect.w / 2) * sprite.scale * camera.zoom)*/, .y = point.y /*- ((sprite.drawRect.h / 2) * sprite.scale * camera.zoom)*/, .w = sprite.drawRect.w * scale * global.windowW / camera.rect.w, .h = sprite.drawRect.h * scale * global.windowH / camera.rect.h}),
+                     sprite.degrees + (!sprite.fixed * camera.degrees), &((SDL_FPoint) {0, 0}), sprite.flip);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
 }
@@ -322,11 +322,11 @@ void drawC2DModel(c2DModel model, cCamera camera, bool update)
                     point.y -= camera.rect.y * global.windowH / camera.rect.h;
                 }
 
-                SDL_RenderCopyEx(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
-                                 &((SDL_Rect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/,
+                SDL_RenderCopyExF(global.mainRenderer, model.sprites[i].texture, &((SDL_Rect) {model.sprites[i].srcClipRect.x, model.sprites[i].srcClipRect.y, model.sprites[i].srcClipRect.w, model.sprites[i].srcClipRect.h}),
+                                 &((SDL_FRect) {.x = point.x /*- ((model.sprites[i].drawRect.w / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/, .y = point.y /*- ((model.sprites[i].drawRect.h / 2) * model.scale * model.sprites[i].scale * camera.zoom)*/,
                                                .w = (model.sprites[i].drawRect.w / camera.rect.w * global.windowW) * scale, .h = (model.sprites[i].drawRect.h / camera.rect.h * global.windowH) * scale}),
                                  model.sprites[i].degrees + model.degrees + (!model.sprites[i].fixed * camera.degrees),
-                                 &((SDL_Point) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
+                                 &((SDL_FPoint) {0, 0}), model.flip == model.sprites[i].flip ? SDL_FLIP_NONE : (model.sprites[i].flip + model.flip) % 4);
                 if (update)
                     SDL_RenderPresent(global.mainRenderer);
 
@@ -457,7 +457,8 @@ void drawCText(cText text, cCamera camera, bool update)
         point.y = point.y - (camera.rect.y * global.windowH / camera.rect.h);
     }
 
-    SDL_RenderCopyEx(global.mainRenderer, text.texture, NULL, &((SDL_Rect) {point.x, point.y, text.rect.w * text.scale, text.rect.h * text.scale}), text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
+    SDL_RenderCopyExF(global.mainRenderer, text.texture, NULL, &((SDL_FRect) {point.x, point.y, text.rect.w * text.scale, text.rect.h * text.scale}),
+                      text.degrees + !text.fixed * camera.degrees, NULL, text.flip);
     SDL_SetRenderDrawColor(global.mainRenderer, r, g, b, a);
     if (update)
         SDL_RenderPresent(global.mainRenderer);
@@ -682,7 +683,7 @@ int addSpriteToCScene(cScene* scenePtr, cSprite* sprite)
  */
 int removeSpriteFromCScene(cScene* scenePtr, cSprite* sprite, int index, bool free)
 {
-    bool success = false;
+    bool success = true;
     if (sprite != NULL)
     {
         index = -1;
@@ -1385,20 +1386,6 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
             printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
             return 1;
         }
-        if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
-        {
-            printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", SDL_GetError());
-            status = 1;  //this isn't a fatal error
-        }
-        else
-        {
-            //Mix_Init(MIX_INIT_OGG);  //deprecated?
-            global.soundVolume = MIX_MAX_VOLUME;
-            Mix_AllocateChannels(32);
-            Mix_Volume(-1, global.soundVolume);  //sets all channels to the sound level global.soundVolume
-            global.musicVolume = MIX_MAX_VOLUME;
-            Mix_VolumeMusic(global.musicVolume);
-        }
         global.mainRenderer = NULL;
         global.window = SDL_CreateWindow(windowName, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, windowWidth, windowHeight, windowFlags);
         if (!global.window)
@@ -1484,7 +1471,6 @@ void closeCoSprite()
 
     TTF_Quit();
     IMG_Quit();
-    Mix_CloseAudio();
     SDL_Quit();
 }
 

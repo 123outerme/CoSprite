@@ -13,7 +13,7 @@
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 12
     #define COSPRITE_VERSION_PATCH 3
-    #define COSPRITE_VERSION "0.12.3"
+    #define COSPRITE_VERSION "0.13.0"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -27,7 +27,7 @@
 #include "SDL2/SDL.h"       //This is included because it's an SDL2 program... duh
 #include "SDL2/SDL_image.h" //This is included so we can use PNGs.
 #include "SDL2/SDL_ttf.h"   //This is included for text stuff
-#include "SDL2/SDL_mixer.h" //This is included for audio
+
 
 //#defines:
 #ifndef bool
@@ -65,8 +65,6 @@ typedef struct _coSprite
     int windowH;
     SDL_Color colorKey;
     bool canDrawText;
-    int soundVolume;
-    int musicVolume;
     int renderLayers;  /**< default 5 */
 } coSprite;
 
