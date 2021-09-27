@@ -17,25 +17,11 @@
 #ifndef NULL
     #define NULL ((void*) 0)
 #endif //NULL
-#ifndef PI
-    #define PI (3.14159265359879)
-    #define radToDeg(x) (180.0 * (x) / PI)
-    #define degToRad(x) ((x) * PI / 180.0)
-#endif // PI
-
-typedef struct _cDoubleLine
-{
-    double x1;
-    double y1;
-    double x2;
-    double y2;
-} cDoubleLine;
 
 int randInt(int low, int high, bool inclusive);
 int digits(int num);
 void* freeThisMem(void* x);
 char* removeNewline(char* stuff, char replacement, int maxLength);
 double getDistance(double x1, double y1, double x2, double y2);
-bool checkIntersection(cDoubleLine line1, cDoubleLine line2);
 
 #endif // CSUTILITY_H_INCLUDED

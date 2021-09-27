@@ -470,7 +470,7 @@ void drawCText(cText text, cCamera camera, bool update)
  * \param subclass - struct containing your data
  * \param drawingMethod - function pointer to your drawing method. Must have only one argument, which is your subclass
  * \param drawingMethod - function pointer to your cleanup method. Must have only one argument, which is your subclass
- * \param renderLayer -
+ * \param renderLayer - the layer it should be rendered on
  */
 void initCResource(cResource* res, void* subclass, void (*drawingRoutine)(void*, cCamera), void (*cleanupRoutine)(void*), int renderLayer)
 {
@@ -922,7 +922,7 @@ int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, b
 
 /** \brief clears out a cScene and all its memory, including sprites.
  *
- * \param scenePtr - pointer to your cScene
+ * \param scenePtr cScene* - pointer to your cScene
  */
 void destroyCScene(cScene* scenePtr)
 {
@@ -966,12 +966,13 @@ void destroyCScene(cScene* scenePtr)
 
 /** \brief draws the CScene.
  *
- * \param scenePtr - pointer to your cScene
- * \param redraw - if nonzero, will update the screen
- * \param fps - if not NULL, will fill the int pointed to with the FPS count
- * \param fpsCap - if not 0, will limit the FPS to the amount set (approx.)
+ * \param scenePtr cScene* - pointer to your cScene
+ * \param redraw bool - if nonzero, will update the screen
+ * \param frameCount int* - if not NULL, fill fill the int pointed to with the frame count
+ * \param fps int* - if not NULL, will fill the int pointed to with the current FPS
+ * \param fpsCap int - if not 0, will limit the FPS to the amount set (approx.)
  */
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap)
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* frameCount, int* fps, int fpsCap)
 { //TODO: Speed this up
     static int frame = 0;
     static int lastFrame = 0;
@@ -1033,6 +1034,9 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int f
 
     if (fps != NULL)
         *fps = (int) (frame * 1000.0 / (SDL_GetTicks() - startTime));
+
+    if (frameCount != NULL)
+        *frameCount = frame;
 
     if (fpsCap > 0)
     {
@@ -1106,6 +1110,32 @@ void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bo
     }
 }
 
+/** \brief Uses simple geometry to quickly determine if two axis-aligned rectangles are colliding
+ *
+ * \param rect1 cDoubleRect
+ * \param rect2 cDoubleRect
+ * \return bool - true if there is a collision, false otherwise
+ */
+bool quickCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2)
+{
+    bool collision = false;
+    if (rect1.x < rect2.x + rect2.w &&
+        rect1.x + rect1.w > rect2.x &&
+        rect1.y < rect2.y + rect2.h &&
+        rect1.y + rect1.h > rect2.y)
+    {
+        collision = true;
+    }
+    return collision;
+}
+
+/** \brief Uses SAT to find the collision between two axis-aligned rectangles
+ *
+ * \param rect1 cDoubleRect
+ * \param rect2 cDoubleRect
+ * \return cDoubleVector - Minimum Translation Vector (applying on rect1)
+ *
+ */
 cDoubleVector checkCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2)
 {
 

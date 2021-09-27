@@ -303,7 +303,7 @@ int main(int argc, char* argv[])
             printf("%f, %f center %f, %f\n", model.rect.x, model.rect.y, model.rect.x + model.rect.w / 2, model.rect.y + model.rect.h / 2);
 
 
-        drawCScene(&scene, true, true, &framerate, 60);
+        drawCScene(&scene, true, true, NULL, &framerate, 60);
     }
     free(randString);
     free(randomNums.arr);

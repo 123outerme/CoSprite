@@ -11,9 +11,9 @@
 
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
-    #define COSPRITE_VERSION_MINOR 12
-    #define COSPRITE_VERSION_PATCH 3
-    #define COSPRITE_VERSION "0.13.0"
+    #define COSPRITE_VERSION_MINOR 13
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.13.1"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -232,7 +232,7 @@ int removeTextFromCScene(cScene* scenePtr, cText* text, int index, bool free);
 int addResourceToCScene(cScene* scenePtr, cResource* resource);
 int removeResourceFromCScene(cScene* scenePtr, cResource* resource, int index, bool free);
 void destroyCScene(cScene* scenePtr);
-void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* fps, int fpsCap);
+void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* frameCount, int* fps, int fpsCap);
 void cSceneViewer(cScene* scene);
 
 //cFont
@@ -242,6 +242,7 @@ void destroyCFont(cFont* font);
 //misc
 void cSceneViewer(cScene* scene);
 void drawText(char* input, int x, int y, int maxW, int maxH, SDL_Color color, bool render);
+bool quickCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2);
 cDoubleVector checkCDoubleRectCollision(cDoubleRect rect1, cDoubleRect rect2);
 cDoubleVector checkCSpriteCollision(cSprite sprite1, cSprite sprite2);
 cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast);

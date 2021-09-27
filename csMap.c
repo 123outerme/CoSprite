@@ -432,10 +432,10 @@ char* csMapToJson(csMap map)
     strncpy(jsonString, "{", size);
     for(int i = 0; i < map.entries; i++)
     {
-        strncat(jsonString, "\"", size);
+        strncat(jsonString, "\'", size);
         strncat(jsonString, map.keys[i], size);
-        strncat(jsonString, "\":", size);
-        if (map.entryTypes[i] != 0)  //if it's a sub-map of some kind
+        strncat(jsonString, "\':", size);
+        if (map.entryTypes[i] != 0)
         {
             if (map.subMaps[i] != NULL)
             {
@@ -457,14 +457,14 @@ char* csMapToJson(csMap map)
             int len = strlen(map.values[i]);
             if (map.values[i][0] == '\'' || map.values[i][0] == '\"')
             {
-                strncat(jsonString, "\"", size);
+                strncat(jsonString, "\'", size);
 
                 char* temp = calloc(len, sizeof(char));
                 strncpy(temp, map.values[i] + 1, len - 2);
                 strncat(jsonString, temp, size);
                 free(temp);
 
-                strncat(jsonString, "\"", size);
+                strncat(jsonString, "\'", size);
             }
             else
                 strncat(jsonString, map.values[i], size);
@@ -539,7 +539,7 @@ void stringToCSMap(csMap* map, char* str)
 /** \brief Find a map's entry given that value's key
  * \param map - the map you wish to search
  * \param key - the key you wish to find the value for
- * \return char* - the found entry, a JSON string containing the found sub-map, or NULL if not found
+ * \return char* - the found entry or a JSON string containing the found sub-map
 */
 char* traverseCSMapByKey(csMap map, char* key)
 {
@@ -563,7 +563,7 @@ char* traverseCSMapByKey(csMap map, char* key)
 /** \brief Find a map's entry given that value's key, and return the value as a csMap
  * \param map - the map you wish to search
  * \param key - the key you wish to find the value for
- * \return csMap - a csMap containing what was found, a key/value pair of ("key"->"<found data>"), or NULL if not found.
+ * \return csMap - a csMap containing what was found, or a key/value pair of ("key"->"<found data>").
 */
 csMap* traverseCSMapByKeyGetMap(csMap map, char* key)
 {
@@ -634,7 +634,7 @@ bool addDataEntryToCSMap(csMap* map, char* key, char* value)
 
     strncpy(map->keys[map->entries - 1], key, newKeyLen);
     strncpy(map->values[map->entries - 1], value, newValueLen);
-    map->entryTypes[map->entries - 1] = 0; //"raw data"
+
     return true;
 }
 
@@ -662,7 +662,7 @@ bool addArrayEntryToCSMap(csMap* map, char* name, csMap arr)
 
     strncpy(map->keys[map->entries - 1], name, newKeyLen + 1);
     memcpy(map->subMaps[map->entries - 1], &arr, sizeof(csMap));
-    map->entryTypes[map->entries - 1] = 2; //array
+    map->entryTypes[map->entries - 1] = 2; //array type
     return true;
 }
 
@@ -706,7 +706,7 @@ bool removeEntryFromCSMap(csMap* map, char* key)
     int entryIndex = map->entries; //impossible index; acts as success flag
     for(int i = 0; i < map->entries; i++)
     {
-        if (map->keys[i] != NULL && strcmp(map->keys[i], key) == 0 && entryIndex == map->entries)
+        if (strcmp(map->keys[i], key) == 0)
             entryIndex = i;
 
         if (i > entryIndex)
@@ -748,7 +748,6 @@ bool removeEntryFromCSMap(csMap* map, char* key)
     map->values[map->entries - 1] = NULL;
 
     destroyCSMap(map->subMaps[map->entries - 1]);
-
     map->entryTypes[map->entries - 1] = 0;
 
     return resizeCSMap(map, map->entries - 1);
