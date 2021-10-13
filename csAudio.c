@@ -1,5 +1,7 @@
 #include "csAudio.h"
 
+csAudio globalAudio;
+
 int initCoSpriteAudio(int maxChannels)
 {
     int status = 0;

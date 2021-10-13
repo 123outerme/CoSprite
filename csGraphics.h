@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 13
-    #define COSPRITE_VERSION_PATCH 1
-    #define COSPRITE_VERSION "0.13.1"
+    #define COSPRITE_VERSION_PATCH 3
+    #define COSPRITE_VERSION "0.13.3"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -101,6 +101,7 @@ typedef struct _cSprite
     double degrees;
     int renderLayer;  /**< 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later */
     bool fixed;  /**< if true, won't be affected by camera movement */
+    bool global;  /**< if true, won't be destroyed by destroyCScene() */
     void* subclass;  /**< fill with any extraneous data or pointer to another struct */
 } cSprite;
 
@@ -191,7 +192,7 @@ bool loadTTFont(char* filePath, TTF_Font** dest, int sizeInPts);
 int* loadTextTexture(char* text, SDL_Texture** dest, int maxW, SDL_Color color, TTF_Font* font, bool isBlended);
 
 //cSprite
-void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int drawPriority);
+void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, bool global, void* subclass, int drawPriority);
 void destroyCSprite(cSprite* sprite);
 void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride);
 
@@ -262,7 +263,7 @@ void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation);
 void destroyCLogger(cLogger* logger);
 
 //global variable declarations:
-coSprite global;
-Uint32 startTime;  /**< not set in-engine; if you want to collect a framerate from drawCScene(), set this right before you start your loop */
+extern coSprite global;
+extern Uint32 startTime;  /**< not set in-engine; if you want to collect a framerate from drawCScene(), set this right before you start your loop */
 
 #endif // CSGRAPHICS_H_INCLUDED

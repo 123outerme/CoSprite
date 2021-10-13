@@ -38,6 +38,6 @@ void destroyCSCurl(csCurl* handle);
 void closeCoSpriteCurl();
 
 //globals:
-csCurl globalCurl;
+extern csCurl globalCurl;
 
 #endif // CSCURL_H_INCLUDED

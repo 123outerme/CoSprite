@@ -44,7 +44,7 @@ void handleTextInput(char* text, cInputState state, size_t maxChar);
 void handleTextKeycodeInput(char* text, SDL_Keycode key, size_t maxChar);
 
 //global variable declarations:
-SDL_Scancode keymaps[MAX_KEYMAPS];
+extern SDL_Scancode keymaps[MAX_KEYMAPS];
 #define KEY_UP keymaps[0]
 #define KEY_DOWN keymaps[1]
 #define KEY_LEFT keymaps[2]

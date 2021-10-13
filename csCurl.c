@@ -1,5 +1,7 @@
 #include "csCurl.h"
 
+csCurl globalCurl;
+
 /** \brief Initializes curl globally, and opens a handle in the globalCurl object.
  *
  * \param flags - curl_global_init flags (typically CURL_GLOBAL_ALL)

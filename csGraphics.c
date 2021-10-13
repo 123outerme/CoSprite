@@ -1,5 +1,8 @@
 #include "csGraphics.h"
 
+coSprite global;
+Uint32 startTime;  /**< not set in-engine; if you want to collect a framerate from drawCScene(), set this right before you start your loop */
+
 /** \brief Initializes a cSprite object. You may want to create a wrapper method.
  *
  * \param sprite - a pointer to your sprite.
@@ -15,7 +18,7 @@
  * \param fixed - if true, won't be affected by a scene's camera
  * \param renderLayer - 0 - not drawn. 1-`renderLayers` - drawn. Lower number = drawn later
  */
-void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, void* subclass, int renderLayer)
+void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, int id, cDoubleRect drawRect, cDoubleRect srcClipRect, cDoublePt* center, double scale, SDL_RendererFlip flip, double degrees, bool fixed, bool global, void* subclass, int renderLayer)
 {
     if (texture)
         sprite->texture = texture;
@@ -36,6 +39,7 @@ void initCSprite(cSprite* sprite, SDL_Texture* texture, char* textureFilepath, i
     sprite->degrees = degrees;
     sprite->flip = flip;
     sprite->fixed = fixed;
+    sprite->global = global;
     sprite->subclass = subclass;
     sprite->renderLayer = renderLayer;
 }
@@ -54,6 +58,7 @@ void destroyCSprite(cSprite* sprite)
     sprite->degrees = 0;
     sprite->flip = SDL_FLIP_NONE;
     sprite->fixed = false;
+    sprite->global = false;
     free(sprite->subclass);
     sprite->subclass = NULL;
     sprite->renderLayer = 0;
@@ -931,7 +936,10 @@ void destroyCScene(cScene* scenePtr)
     if (scenePtr->spriteCount > 0)
     {
         for(int i = 0; i < scenePtr->spriteCount; i++)
-            destroyCSprite(scenePtr->sprites[i]);
+        {
+            if (!scenePtr->sprites[i]->global)
+                destroyCSprite(scenePtr->sprites[i]);
+        }
         scenePtr->spriteCount = 0;
         free(scenePtr->sprites);
     }
@@ -1365,10 +1373,13 @@ cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast
     if (fast)
     {
         cSprite sprite1;
-        initCSprite(&sprite1, NULL, ".", 0, (cDoubleRect) {model1.rect.x, model1.rect.y, model1.rect.w * model1.scale, model1.rect.h * model1.scale}, model1.rect, &model1.center, model1.scale, model1.flip, model1.degrees, false, NULL, 0);
+        initCSprite(&sprite1, NULL, ".", 0, (cDoubleRect) {model1.rect.x, model1.rect.y, model1.rect.w * model1.scale, model1.rect.h * model1.scale}, model1.rect, &model1.center, model1.scale, model1.flip, model1.degrees, false, false, NULL, 0);
         cSprite sprite2;
-        initCSprite(&sprite2, NULL, ".", 0, (cDoubleRect) {model2.rect.x, model2.rect.y, model2.rect.w * model2.scale, model2.rect.h * model2.scale}, model2.rect, &model2.center, model2.scale, model2.flip, model2.degrees, false, NULL, 0);
-        return checkCSpriteCollision(sprite1, sprite2);
+        initCSprite(&sprite2, NULL, ".", 0, (cDoubleRect) {model2.rect.x, model2.rect.y, model2.rect.w * model2.scale, model2.rect.h * model2.scale}, model2.rect, &model2.center, model2.scale, model2.flip, model2.degrees, false, false, NULL, 0);
+        cDoubleVector v = checkCSpriteCollision(sprite1, sprite2);
+        destroyCSprite(&sprite1);
+        destroyCSprite(&sprite2);
+        return v;
     }
     else
     {

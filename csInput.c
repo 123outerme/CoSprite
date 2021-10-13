@@ -1,6 +1,6 @@
 #include "csInput.h"
 
-
+SDL_Scancode keymaps[MAX_KEYMAPS];
 
 /** \brief gets a keystate
  *

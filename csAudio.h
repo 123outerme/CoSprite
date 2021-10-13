@@ -47,6 +47,6 @@ void playCSSoundFX(csSoundFX* sound, int loops);
 void destroyCSSoundFX(csSoundFX* sound);
 void closeCoSpriteAudio();
 
-csAudio globalAudio;
+extern csAudio globalAudio;
 
 #endif // CSAUDIO_H_INCLUDED
