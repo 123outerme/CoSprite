@@ -28,7 +28,7 @@ void testMusicCallback();
 int main(int argc, char* argv[])
 {
     argv[argc - 1] = " ";  //just to get rid of warnings
-    int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, 5, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    int code = initCoSprite("assets/cb.bmp", "CoSprite Test/Example", 960, 480, "assets/Px437_ITT_BIOS_X.ttf", 24, (SDL_Color) {255, 28, 198, 0xFF}, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     initCoSpriteCurl(CURL_GLOBAL_ALL, "./assets/cacert.pem", true);
     initCoSpriteAudio(32);
     csSoundFX testSound;
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
         initC2DModel(&model, (cSprite[2]) {lowerSprite, upperSprite}, 2, (cDoublePt) {0, 0}, NULL, 1.0, SDL_FLIP_NONE, 0.0, false, NULL, 5);
     }
     cCamera camera;
-    initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0);
+    initCCamera(&camera, (cDoubleRect) {0, 0, global.windowW / 48, global.windowH / 48}, 1.0, 0.0, 5);
     cScene scene;
     initCScene(&scene, (SDL_Color) {0xFF, 0xFF, 0xFF, 0xFF}, &camera, /*(cSprite*[2]) {&lowerSprite, &upperSprite}*/ NULL, 0, /**/(c2DModel*[1]) {&model}/**/, 1, (cResource**) NULL, 0, (cText*[1]) {&txt}, 1);
     //add2DModelToCScene(&scene, &model);
@@ -327,7 +327,7 @@ void loadSprite(cSprite* sprite, char* filePath, cDoubleRect rect, cDoubleRect c
     loadIMG(filePath, &tempTexture);
     if (!center)
         center = &((cDoublePt) {rect.w / 2, rect.h / 2});
-    initCSprite(sprite, tempTexture, filePath, 1, rect, clipRect, center, scale, flip, degrees, fixed, subclass, priority);
+    initCSprite(sprite, tempTexture, filePath, 1, rect, clipRect, center, scale, flip, degrees, fixed, false, subclass, priority);
 }
 
 /** \brief Draws a standard menu

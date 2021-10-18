@@ -31,7 +31,8 @@ typedef struct _cInputState
     SDL_MouseButtonEvent click;
     SDL_MouseMotionEvent motion;
     SDL_Keysym keysym;
-    bool isClick;  /**< If true, then there was no mouse input */
+    bool isClick;  /**< If true, then there was a click */
+    bool isMotion; /**< If true, then there was some mouse motion */
     bool quitInput;  /**< True if given any sort of quit-like input */
 } cInputState;
 

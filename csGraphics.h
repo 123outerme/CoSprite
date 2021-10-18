@@ -11,9 +11,9 @@
 
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
-    #define COSPRITE_VERSION_MINOR 13
-    #define COSPRITE_VERSION_PATCH 3
-    #define COSPRITE_VERSION "0.13.3"
+    #define COSPRITE_VERSION_MINOR 14
+    #define COSPRITE_VERSION_PATCH 0
+    #define COSPRITE_VERSION "0.14.0"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -65,7 +65,6 @@ typedef struct _coSprite
     int windowH;
     SDL_Color colorKey;
     bool canDrawText;
-    int renderLayers;  /**< default 5 */
 } coSprite;
 
 typedef struct _cDoubleRect
@@ -152,6 +151,7 @@ typedef struct _cCamera
     cDoubleRect rect;
     double zoom;
     double degrees;
+    int renderLayers;  /**< default 5 */
 } cCamera;
 
 typedef struct _cResource
@@ -216,7 +216,7 @@ void drawCResource(cResource* res, cCamera camera);
 void destroyCResource(cResource* res);
 
 //cCamera
-void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees);
+void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees, int renderLayers);
 cDoublePt cWindowCoordToCameraCoord(cDoublePt pt, cCamera camera);
 cDoublePt cCameraCoordToWindowCoord(cDoublePt pt, cCamera camera);
 void destroyCCamera(cCamera* camera);

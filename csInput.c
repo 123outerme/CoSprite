@@ -30,6 +30,9 @@ cInputState cGetInputState(bool useMouse)
                     state.isClick = true;
                     state.click = e.button;
                 }
+
+                if (e.type == SDL_MOUSEMOTION)
+                    state.isMotion = true;
             }
 
             if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP)

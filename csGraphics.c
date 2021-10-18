@@ -284,7 +284,7 @@ void sortCSpritesInModel(c2DModel* model)
  */
 void drawC2DModel(c2DModel model, cCamera camera, bool update)
 {
-    for(int priority = global.renderLayers; priority >= 1; priority--)
+    for(int priority = camera.renderLayers; priority >= 1; priority--)
     {
         for(int i = 0; i < model.numSprites; i++)
         {
@@ -515,11 +515,12 @@ void destroyCResource(cResource* res)
  * \param rect - the bounding rect of the camera
  * \param degrees - angle of rotation in degrees
  */
-void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees)
+void initCCamera(cCamera* camera, cDoubleRect rect, double zoom, double degrees, int renderLayers)
 {
     camera->rect = rect;
     camera->zoom = zoom;
     camera->degrees = degrees;
+    camera->renderLayers = renderLayers;
 }
 
 cDoublePt cWindowCoordToCameraCoord(cDoublePt pt, cCamera camera)
@@ -975,6 +976,7 @@ void destroyCScene(cScene* scenePtr)
 /** \brief draws the CScene.
  *
  * \param scenePtr cScene* - pointer to your cScene
+ * \param clearScreen bool - if nonzero, will clear the screen of the previous frame
  * \param redraw bool - if nonzero, will update the screen
  * \param frameCount int* - if not NULL, fill fill the int pointed to with the frame count
  * \param fps int* - if not NULL, will fill the int pointed to with the current FPS
@@ -991,7 +993,7 @@ void drawCScene(cScene* scenePtr, bool clearScreen, bool redraw, int* frameCount
 
     int maxNum = fmax(scenePtr->spriteCount, fmax(scenePtr->modelCount, fmax(scenePtr->resCount, scenePtr->stringCount)));
 
-    for(int priority = global.renderLayers; priority >= 1; priority--)
+    for(int priority = scenePtr->camera->renderLayers; priority >= 1; priority--)
     {
         /*
         for(int i = 0; i < scenePtr->spriteCount; i++)
@@ -1405,7 +1407,7 @@ cDoubleVector checkC2DModelCollision(c2DModel model1, c2DModel model2, bool fast
  *
  * \return Code 0: No error. Code 1: SDL systems failed to initialize. Code 2: Window could not be created Code 3: Renderer failed to initialize
  */
-int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize, int renderLayers, SDL_Color transparentColor, Uint32 windowFlags)
+int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHeight, char* fontPath, int fontSize, SDL_Color transparentColor, Uint32 windowFlags)
 {
     int status = 0;
     global.window = NULL;
@@ -1438,7 +1440,6 @@ int initCoSprite(char* iconPath, char* windowName, int windowWidth, int windowHe
         {
             global.windowW = windowWidth;
             global.windowH = windowHeight;
-            global.renderLayers = (renderLayers < 1) ? 6 : renderLayers;
             global.mainRenderer = SDL_CreateRenderer(global.window, -1, SDL_RENDERER_ACCELERATED);
             if(!global.mainRenderer)
             {
