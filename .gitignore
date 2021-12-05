@@ -17,3 +17,4 @@ exported.bin
 *.dll
 *.crt
 *.pem
+*.out
