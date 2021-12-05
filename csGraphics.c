@@ -108,6 +108,59 @@ void drawCSprite(cSprite sprite, cCamera camera, bool update, bool fixedOverride
         SDL_RenderPresent(global.mainRenderer);
 }
 
+/** \brief Import a cSprite from string data
+ *
+ * \param sprite cSprite* - the sprite struct you want filled in
+ * \param data char* - the data you want converted to a cSprite
+ */
+void importCSprite(cSprite* sprite, char* data)
+{
+    char* savePtr = data;
+
+    //texture
+    char* filepath = strtok_r(data, "{,}", &savePtr);  //grab the filepath
+    char* saveFilepath = filepath;
+    strncpy(sprite->textureFilepath, strtok_r(filepath, "\"", &saveFilepath), MAX_PATH);  //take off the quotes
+    loadIMG(sprite->textureFilepath, &(sprite->texture));
+
+    //data
+    sprite->id = strtol(strtok_r(savePtr, "{,}", &savePtr), NULL, 10);
+    sprite->drawRect.x = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->drawRect.y = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->drawRect.w = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->drawRect.h = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->srcClipRect.x = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->srcClipRect.y = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->srcClipRect.w = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->srcClipRect.h = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->center.x = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->center.y = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->scale = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->flip = strtol(strtok_r(savePtr, "{,}", &savePtr), NULL, 10);
+    sprite->degrees = strtod(strtok_r(savePtr, "{,}", &savePtr), NULL);
+    sprite->renderLayer = strtol(strtok_r(savePtr, "{,}", &savePtr), NULL, 10);
+    sprite->fixed = strtol(strtok_r(savePtr, "{,}", &savePtr), NULL, 10);
+    sprite->subclass = NULL;  //subclass data not stored
+    sprite->global = false;  //global flag also not stored
+}
+
+/** \brief Export a cSprite to string format
+ *
+ * \param sprite cSprite - the sprite you want converted to string
+ * \return char* - the string containing your sprite data (must be free()'d manually after use)
+ */
+char* exportCSprite(cSprite sprite)
+{
+    char* spriteData = calloc(2048, sizeof(char));
+    snprintf(spriteData, 2048, "{\"%s\",%d,%f,%f,%f,%f,%.2f,%.2f,%.2f,%.2f,%f,%f,%f,%d,%f,%d,%d}", sprite.textureFilepath, sprite.id,
+                 sprite.drawRect.x, sprite.drawRect.y, sprite.drawRect.w, sprite.drawRect.h,
+                 sprite.srcClipRect.x, sprite.srcClipRect.y, sprite.srcClipRect.w,
+                 sprite.srcClipRect.h, sprite.center.x, sprite.center.y, sprite.scale,
+                 sprite.flip, sprite.degrees, sprite.renderLayer, sprite.fixed);
+
+    return spriteData;
+}
+
 /** \brief Initializes a c2DModel object.
  *
  * \param model - a pointer to your model.
@@ -222,6 +275,7 @@ void importC2DModel(c2DModel* model, char* filepath)
         model->sprites[i].renderLayer = strtol(strtok(NULL, "{,}"), NULL, 10);
         model->sprites[i].fixed = strtol(strtok(NULL, "{,}"), NULL, 10);
         model->sprites[i].subclass = NULL;  //subclass data not stored
+        model->sprites[i].global = false;  //global flag also not stored
     }
     free(data);
     model->subclass = NULL;  //subclass not stored
@@ -241,16 +295,13 @@ void exportC2DModel(c2DModel* model, char* filepath)
              model->rect.h, model->center.x, model->center.y, model->scale, model->flip, model->degrees,
              model->renderLayer, model->fixed);
     appendLine(filepath, data, true);
+    free(data);
     for(int i = 0; i < model->numSprites; i++)
     {
-        snprintf(data, 2048, "{%s,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%d,%f,%d,%d}", model->sprites[i].textureFilepath, model->sprites[i].id,
-                 model->sprites[i].drawRect.x, model->sprites[i].drawRect.y, model->sprites[i].drawRect.w, model->sprites[i].drawRect.h,
-                 model->sprites[i].srcClipRect.x, model->sprites[i].srcClipRect.y, model->sprites[i].srcClipRect.w,
-                 model->sprites[i].srcClipRect.h, model->sprites[i].center.x, model->sprites[i].center.y, model->sprites[i].scale,
-                 model->sprites[i].flip, model->sprites[i].degrees, model->sprites[i].renderLayer, model->sprites[i].fixed);
+        data = exportCSprite(model->sprites[i]);
         appendLine(filepath, data, true);
+        free(data);
     }
-    free(data);
 }
 
 /** \brief Sorts a model's sprites by draw priority to optimize speed
@@ -1777,9 +1828,12 @@ char* readLine(char* filePath, int lineNum, int maxLength, char** output)
  * \param logger cLogger*
  * \param outFilepath char* the filepath where the logs will go
  * \param dateTimeFormat char* strftime() compatible time format, NULL for a default format
+ * \param printToStdout char If true, will also printf() your log events
  */
-void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat)
+void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat, char printToStdout)
 {
+    logger->printToStdout = printToStdout;
+
     logger->filepath = calloc(strlen(outFilepath) + 1, sizeof(char));
     strncpy(logger->filepath, outFilepath, strlen(outFilepath));
 
@@ -1812,6 +1866,9 @@ void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation)
     snprintf(logLine, dateStringLen + strlen(entryType) + strlen(brief) + strlen(explanation) + 13, "%s - %s: %s (%s)", dateString, entryType, brief, explanation);
     appendLine(logger.filepath, logLine, true);
 
+    if (logger.printToStdout)
+        printf("%s\n", logLine);
+
     free(logLine);
     free(dateString);
 }
@@ -1822,6 +1879,7 @@ void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation)
  */
 void destroyCLogger(cLogger* logger)
 {
+    logger->printToStdout = false;
     free(logger->filepath);
     free(logger->dateTimeFormat);
 }

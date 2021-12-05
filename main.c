@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
     initCSMusic(&testMusic, "./assets/audio/mainTheme.mp3", testMusicCallback);
     playCSMusic(&testMusic, 0);
 
-    initCLogger(&testLogger, "./logs/log.txt", NULL);
+    initCLogger(&testLogger, "./logs/log.txt", NULL, true);
     cLogEvent(testLogger, "TEST", "Testing logs", "Initialized");
 
     randomNums = (intArray) {calloc(MAX_RAND_NUMS, sizeof(int)), 0};

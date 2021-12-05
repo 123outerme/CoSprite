@@ -12,8 +12,8 @@
 #ifndef COSPRITE_VERSION
     #define COSPRITE_VERSION_MAJOR 0
     #define COSPRITE_VERSION_MINOR 14
-    #define COSPRITE_VERSION_PATCH 0
-    #define COSPRITE_VERSION "0.14.0"
+    #define COSPRITE_VERSION_PATCH 1
+    #define COSPRITE_VERSION "0.14.1"
 #endif //COSPRITE_VERSION
 #define SDL_MAIN_HANDLED 1
 
@@ -180,6 +180,7 @@ typedef struct _cLogger
 {
     char* filepath;
     char* dateTimeFormat;  /**< strftime() compatible time format */
+    bool printToStdout;  /**< If true, will also printf() your log events */
 } cLogger;
 
 //function prototypes:
@@ -258,7 +259,7 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
 char* readLine(char* filePath, int lineNum, int maxLength, char** output);
 
 //logging
-void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat);
+void initCLogger(cLogger* logger, char* outFilepath, char* dateTimeFormat, bool printToStdout);
 void cLogEvent(cLogger logger, char* entryType, char* brief, char* explanation);
 void destroyCLogger(cLogger* logger);
 
