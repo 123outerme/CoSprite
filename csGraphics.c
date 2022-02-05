@@ -857,7 +857,7 @@ int addTextToCScene(cScene* scenePtr, cText* text)
     if (tempTexts != NULL)
     {
         scenePtr->strings = tempTexts;
-        scenePtr->strings[scenePtr->modelCount] = text;
+        scenePtr->strings[scenePtr->stringCount] = text;
         scenePtr->stringCount++;
     }
     else
