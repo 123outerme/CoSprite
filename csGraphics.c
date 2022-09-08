@@ -1797,30 +1797,37 @@ int replaceLine(char* filePath, int lineNum, char* stuff, int maxLength, bool ad
  * \param filePath - valid string filepath (relative or absolute)
  * \param lineNum - the line number (starting from 0)
  * \param maxLength - how long the string should be, max.
- * \param output - pointer to an uninitialized char* you want to save the line to
+ * \param output - pointer to an initialized but empty char* you want to save the line to
  * \return NULL if it fails, otherwise your string
  */
 char* readLine(char* filePath, int lineNum, int maxLength, char** output)
 {
-	FILE* filePtr = fopen(filePath,"r");
-	if (!filePtr || !*output)
-		return NULL;
-	else
-	{
-        char thisLine[maxLength];
-        fseek(filePtr, 0, SEEK_SET);
+    FILE* filePtr = fopen(filePath, "r");
 
-        for(int p = 0; p <= lineNum; p++)
-            fgets(thisLine, maxLength, filePtr);
+    if (!filePtr || !*output)
+        return NULL;
 
-        //printf("%s @ %d\n", thisLine, thisLine);
-        strncpy(*output, thisLine, maxLength);
-        //printf("%s @ %x\n", output, output);
+    int currentLine = 0;
+    while(currentLine != lineNum)
+    {
+        char c = fgetc(filePtr);
+        if (c == '\n')
+            currentLine++;
+    }
 
-        fclose(filePtr);
-        //free(thisLine);
-        return *output;
-	}
+    bool foundLf = false;
+    int i = 0;
+    while(!foundLf && i < maxLength)
+    {
+        char c = fgetc(filePtr);
+        (*output)[i++] = c;
+
+        //to include LF place this if after putting the char in the str, otherwise put 'else <set the char>;'
+        if (c == '\n')
+            foundLf = true;
+    }
+
+    return *output;
 }
 
 /** \brief Constructs a cLogger
